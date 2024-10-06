@@ -80,6 +80,7 @@ class AudioManager: NSObject, ObservableObject {
         audioEngine.detach(sampler)
         sampler = AVAudioUnitSampler()
         instrument = "None"
+        connectSampler()
     }
 
     private func connectSampler() {
@@ -111,14 +112,24 @@ class AudioManager: NSObject, ObservableObject {
     }
 
     /// Start playing.
-    func startDrone() {
+    private func startDrone() {
+        guard !isPlaying else { return }
         setCurrentNote() // Probably redundant, but can't hurt
         sampler.startNote(currentNote, withVelocity: velocity, onChannel: 0)
         sampler.startNote(currentNote + 12, withVelocity: velocity, onChannel: 0)
         setIsPlaying(true)
     }
 
+    /// Stop playing.
+    private func stopDrone() {
+        guard isPlaying else { return }
+        sampler.stopNote(currentNote, onChannel: 0)
+        sampler.stopNote(currentNote + 12, onChannel: 0)
+        setIsPlaying(false)
+    }
+
     /// Set current note for playback and display (and profit).
+    /// Called when not playing
     private func setCurrentNote() {
         currentNote = noteSequence[currentIndex]
         currentNoteName = nameSequence[currentIndex]
@@ -126,16 +137,8 @@ class AudioManager: NSObject, ObservableObject {
         nextNoteName = nameSequence[(currentIndex + 1) % nameSequence.count]
     }
 
-    /// Stop playing.
-    func stopDrone() {
-        guard isPlaying else { return }
-        sampler.stopNote(currentNote, onChannel: 0)
-        sampler.stopNote(currentNote + 12, onChannel: 0)
-        setIsPlaying(false)
-    }
-
     /// Set the `isPlaying` flag, and also try to disable screen sleeping
-    func setIsPlaying(_ newValue: Bool) {
+    private func setIsPlaying(_ newValue: Bool) {
         if newValue == isPlaying { return }
         isPlaying = newValue
 
@@ -168,21 +171,6 @@ class AudioManager: NSObject, ObservableObject {
         }
     }
 
-    /// Move to the next note in the current sequence
-    func prevDrone() {
-        changeDrone(-1)
-    }
-
-    /// Move to the next note in the current sequence
-    func nextDrone() {
-        changeDrone(1)
-    }
-
-    /// Switch to a random note in the current sequence
-    func randomDrone() {
-        changeDrone(Int.random(in: 1...noteSequence.count))
-    }
-
     /// Update the current note, based on `delta` and `sequenceOrder`
     func changeDrone(_ delta: Int) {
         let mod = noteSequence.count
@@ -192,10 +180,11 @@ class AudioManager: NSObject, ObservableObject {
         }
     }
 
-    private func timeOut(_ hey: (_ wasPlaying: Bool) -> Void) {
+    /// Do `action` while not playing (pause and resume if called while playing)
+    private func timeOut(_ action: (_ wasPlaying: Bool) -> Void) {
         let wasPlaying = isPlaying
         if wasPlaying { stopDrone() }
-        hey(wasPlaying)
+        action(wasPlaying)
         if wasPlaying { startDrone() }
     }
 
