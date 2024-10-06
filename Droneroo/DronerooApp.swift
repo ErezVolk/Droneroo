@@ -6,7 +6,7 @@ import SwiftUI
 struct DronerooApp: App {
     var body: some Scene {
         WindowGroup {
-            ContentView()
+            DronerooView()
         }
     }
 }

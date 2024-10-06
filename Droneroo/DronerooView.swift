@@ -19,8 +19,8 @@ extension View {
     }
 }
 
-struct ContentView: View {
-    @StateObject private var audioManager = AudioManager()
+struct DronerooView: View {
+    @StateObject private var audioManager = DronerooLogic()
     @State private var selectedSequence: SequenceType = .circleOfFourth
     @FocusState private var focused: Bool
     /// How much to add to the current note index when the right arrow key is pressed ("forward")
@@ -37,48 +37,52 @@ struct ContentView: View {
 #endif
 
     var body: some View {
-        VStack(spacing: 20) {
-            HStack {
-                prevNextButton(text: audioManager.previousNoteName, cond: direction < 0)
-                    .onTapGesture { toChangeNote -= 1 }
-
-                middleButton
-                    .handleKey(.leftArrow) { toChangeNote -= direction }
-                    .handleKey(.rightArrow) { toChangeNote += direction }
-                    .handleKey(.space) { toToggleDrone = !toToggleDrone }
-                    .onTapGesture { toToggleDrone = !toToggleDrone }
-
-                prevNextButton(text: audioManager.nextNoteName, cond: direction > 0)
-                    .onTapGesture { toChangeNote += 1 }
+        ZStack {
+            Color.dronerooBack
+            
+            VStack(spacing: 20) {
+                HStack {
+                    prevNextButton(text: audioManager.previousNoteName, cond: direction < 0)
+                        .onTapGesture { toChangeNote -= 1 }
+                    
+                    middleButton
+                        .handleKey(.leftArrow) { toChangeNote -= direction }
+                        .handleKey(.rightArrow) { toChangeNote += direction }
+                        .handleKey(.space) { toToggleDrone = !toToggleDrone }
+                        .onTapGesture { toToggleDrone = !toToggleDrone }
+                    
+                    prevNextButton(text: audioManager.nextNoteName, cond: direction > 0)
+                        .onTapGesture { toChangeNote += 1 }
+                }
+                
+                HStack {
+                    sequencePicker
+                    
+                    signpost
+                        .onTapGesture { direction = -direction }
+                }
+                
+                instrumentPanel
             }
-
-            HStack {
-                sequencePicker
-
-                signpost
-                    .onTapGesture { direction = -direction }
+            .padding()
+            .onAppear {
+                audioManager.loadSequence()
             }
-
-            instrumentPanel
-        }
-        .onAppear {
-            audioManager.loadSequence()
-        }
-        .onChange(of: toToggleDrone) {
-            if toToggleDrone { audioManager.toggleDrone() }
-            toToggleDrone = false
-        }
-        .onChange(of: toChangeNote) {
-            if toChangeNote != 0 { audioManager.changeDrone(toChangeNote) }
-            toChangeNote = 0
-        }
-        .onChange(of: selectedSequence) {
-            audioManager.sequenceType = selectedSequence
-            audioManager.loadSequence()
+            .onChange(of: toToggleDrone) {
+                if toToggleDrone { audioManager.toggleDrone() }
+                toToggleDrone = false
+            }
+            .onChange(of: toChangeNote) {
+                if toChangeNote != 0 { audioManager.changeDrone(toChangeNote) }
+                toChangeNote = 0
+            }
+            .onChange(of: selectedSequence) {
+                audioManager.sequenceType = selectedSequence
+                audioManager.loadSequence()
+            }
         }
 #if os(iOS)
-        .containerRelativeFrame([.horizontal, .vertical])
-        .background(.dronerooBack)
+        .ignoresSafeArea()
 #endif
     }
 

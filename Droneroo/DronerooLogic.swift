@@ -15,7 +15,7 @@ enum SequenceType: String, CaseIterable, Identifiable {
     var id: String { self.rawValue }
 }
 
-class AudioManager: NSObject, ObservableObject {
+class DronerooLogic: NSObject, ObservableObject {
     @Published var currentNoteName: String = "None"
     @Published var previousNoteName: String = "N/A"
     @Published var nextNoteName: String = "N/A"
