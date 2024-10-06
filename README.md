@@ -1,6 +1,6 @@
 <div align="center">
 
-<h1>Timeroo</h2>
+<h1>Droneroo</h2>
 
 ![Droneroo](Droneroo/Assets.xcassets/AppIcon.appiconset/Droneroo-512.png)
 
