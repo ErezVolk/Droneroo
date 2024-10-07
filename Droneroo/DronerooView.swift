@@ -29,10 +29,7 @@ struct DronerooView: View {
     @State private var toChangeNote = 0
     // Since calling `audioManager` from `.onTap` issues errors, save them aside
     @State private var toToggleDrone = false
-#if os(macOS)
-    private let signpostDiameter = 32
-#else
-    private let signpostDiameter = 40
+#if os(iOS)
     @State private var instrument: Instrument = .beep
 #endif
 
@@ -40,29 +37,30 @@ struct DronerooView: View {
         ZStack {
             Color.dronerooBack
                 .ignoresSafeArea()
-            
+
             VStack(spacing: 20) {
                 HStack {
                     prevNextButton(text: audioManager.previousNoteName, cond: direction < 0)
                         .onTapGesture { toChangeNote -= 1 }
-                    
+
                     middleButton
                         .handleKey(.leftArrow) { toChangeNote -= direction }
                         .handleKey(.rightArrow) { toChangeNote += direction }
                         .handleKey(.space) { toToggleDrone = !toToggleDrone }
                         .onTapGesture { toToggleDrone = !toToggleDrone }
-                    
+
                     prevNextButton(text: audioManager.nextNoteName, cond: direction > 0)
                         .onTapGesture { toChangeNote += 1 }
                 }
-                
-                HStack {
+
+                ZStack {
                     sequencePicker
-                    
-                    signpost
-                        .onTapGesture { direction = -direction }
+                    HStack {
+                        Spacer()
+                        signpost
+                    }
                 }
-                
+
                 instrumentPanel
             }
             .padding()
@@ -158,9 +156,10 @@ struct DronerooView: View {
     /// The "which way" button
     var signpost: some View {
         Image(systemName: direction > 0 ? "signpost.right.fill" : "signpost.left.fill")
-            .encircle(diameter: signpostDiameter,
+            .encircle(diameter: 40,
                       textColor: .directionText,
                       circleColor: .directionBack,
                       textFont: .body)
+            .onTapGesture { direction = -direction }
     }
 }
