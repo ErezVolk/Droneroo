@@ -35,14 +35,8 @@ struct DronerooView: View {
 
     var body: some View {
         ZStack {
-            LinearGradient(
-                stops: [
-                    Gradient.Stop(color: .drPurple6, location: 0.8),
-                    Gradient.Stop(color: .drPurple7, location: 1)
-                ],
-                startPoint: .top,
-                endPoint: .bottomTrailing)
-                .ignoresSafeArea()
+            backgroundGradient
+            identityOverlay
 
             VStack(spacing: 20) {
                 HStack {
@@ -134,7 +128,7 @@ struct DronerooView: View {
     var instrumentPanel: some View {
 #if os(macOS)
             HStack {
-                Button("Load SoundFont") {
+                Button("Load SoundFont...") {
                     let panel = NSOpenPanel()
                     panel.allowsMultipleSelection = false
                     panel.canChooseDirectories = false
@@ -172,10 +166,36 @@ struct DronerooView: View {
     /// The "which way" button
     var signpost: some View {
         Image(systemName: direction > 0 ? "signpost.right.fill" : "signpost.left.fill")
-            .encircle(diameter: 40,
+            .encircle(diameter: 44,
                       textColor: .drGreen3,
                       circleColor: .drGrey8,
                       textFont: .body)
             .onTapGesture { direction = -direction }
+    }
+    
+    /// The background color
+    var backgroundGradient : some View {
+        LinearGradient(
+            stops: [
+                Gradient.Stop(color: .drPurple8, location: 0.7),
+                Gradient.Stop(color: .drPurple9, location: 1)
+            ],
+            startPoint: .top,
+            endPoint: .bottomTrailing)
+            .ignoresSafeArea()
+    }
+    
+    /// Shows the app name and version i
+    var identityOverlay: some View {
+        VStack {
+            Spacer()
+            HStack {
+                Spacer()
+                Label(getWhoAmI(), systemImage: "")
+                    .font(.caption)
+            }
+        }
+        .padding()
+        .opacity(0.7)
     }
 }
