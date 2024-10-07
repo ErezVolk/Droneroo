@@ -75,8 +75,9 @@ class DronerooLogic: NSObject, ObservableObject {
         }
     }
 
-    /// Recreate sample, resetting to beep (internal fucntion, called when not playing)
+    /// Recreate sample, resetting to beep
     private func newSampler() {
+        assert(!isPlaying)
         audioEngine.detach(sampler)
         sampler = AVAudioUnitSampler()
         instrument = "None"
@@ -129,8 +130,8 @@ class DronerooLogic: NSObject, ObservableObject {
     }
 
     /// Set current note for playback and display (and profit).
-    /// Called when not playing
     private func setCurrentNote() {
+        assert(!isPlaying)
         currentNote = noteSequence[currentIndex]
         currentNoteName = nameSequence[currentIndex]
         previousNoteName = nameSequence[(currentIndex + nameSequence.count - 1) % nameSequence.count]
