@@ -1,6 +1,7 @@
 #  TODO List
 
-- Proper color scheme
+- https://medium.com/@Barbapapapps/beyond-basics-implementing-a-custom-picker-in-swiftui-88c01e283ac1
+- Some kind of version and/or icon in the background
 - Audio settings in a window
 - Pick a note NOW (wheel or something)
 - Piano keyboard
