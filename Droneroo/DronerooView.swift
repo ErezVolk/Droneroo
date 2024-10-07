@@ -35,7 +35,13 @@ struct DronerooView: View {
 
     var body: some View {
         ZStack {
-            LinearGradient(colors: [.drPurple8, .drPurple7], startPoint: .top, endPoint: .bottomTrailing)
+            LinearGradient(
+                stops: [
+                    Gradient.Stop(color: .drPurple6, location: 0.8),
+                    Gradient.Stop(color: .drPurple7, location: 1)
+                ],
+                startPoint: .top,
+                endPoint: .bottomTrailing)
                 .ignoresSafeArea()
 
             VStack(spacing: 20) {
