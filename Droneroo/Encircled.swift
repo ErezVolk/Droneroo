@@ -36,7 +36,7 @@ struct EncircledToggleStyle: ToggleStyle {
     var onBackColor: Color = .onToggleBack
     var offTextColor: Color = .offToggleText
     var offBackColor: Color = .offToggleBack
-    
+
     func makeBody(configuration: Configuration) -> some View {
         configuration.label
             .encircle(

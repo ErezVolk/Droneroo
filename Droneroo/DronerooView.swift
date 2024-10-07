@@ -96,7 +96,7 @@ struct DronerooView: View {
                 offBackColor: .drGrey8
             ))
     }
-    
+
     /// The "previous/next tone" circles
     func prevNextButton(text: String, cond: Bool) -> some View {
         return Text(text)
@@ -172,9 +172,9 @@ struct DronerooView: View {
                       textFont: .body)
             .onTapGesture { direction = -direction }
     }
-    
+
     /// The background color
-    var backgroundGradient : some View {
+    var backgroundGradient: some View {
         LinearGradient(
             stops: [
                 Gradient.Stop(color: .drPurple8, location: 0.7),
@@ -184,7 +184,7 @@ struct DronerooView: View {
             endPoint: .bottomTrailing)
             .ignoresSafeArea()
     }
-    
+
     /// Shows the app name and version i
     var identityOverlay: some View {
         VStack {

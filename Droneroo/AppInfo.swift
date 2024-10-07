@@ -4,7 +4,7 @@ import CoreFoundation
 import Foundation
 
 /// Helper to get a value from the bundle's info dictionary
-fileprivate func getBundleProperty(_ key: CFString) -> String {
+private func getBundleProperty(_ key: CFString) -> String {
     return Bundle.main.infoDictionary?[key as String] as? String ?? "???"
 }
 
