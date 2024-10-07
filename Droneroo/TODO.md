@@ -1,6 +1,6 @@
 #  TODO List
 
-- Proper gradient color background
+- Proper color scheme
 - Audio settings in a window
 - Pick a note NOW (wheel or something)
 - Piano keyboard
