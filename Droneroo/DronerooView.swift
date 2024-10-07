@@ -39,6 +39,7 @@ struct DronerooView: View {
     var body: some View {
         ZStack {
             Color.dronerooBack
+                .ignoresSafeArea()
             
             VStack(spacing: 20) {
                 HStack {
@@ -81,9 +82,6 @@ struct DronerooView: View {
                 audioManager.loadSequence()
             }
         }
-#if os(iOS)
-        .ignoresSafeArea()
-#endif
     }
 
     /// The "previous/next tone" circles
