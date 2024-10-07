@@ -35,7 +35,7 @@ struct DronerooView: View {
 
     var body: some View {
         ZStack {
-            Color.drPurple8
+            LinearGradient(colors: [.drPurple8, .drPurple7], startPoint: .top, endPoint: .bottomTrailing)
                 .ignoresSafeArea()
 
             VStack(spacing: 20) {
@@ -55,7 +55,6 @@ struct DronerooView: View {
 
                 ZStack {
                     sequencePicker
-                        .colorMultiply(.drGrey8)
                     HStack {
                         Spacer()
                         signpost
@@ -117,6 +116,10 @@ struct DronerooView: View {
         }
 #if os(macOS)
         .pickerStyle(.segmented)
+        .colorMultiply(.drGrey8)
+#else
+        .colorMultiply(.drGreen2)
+        .background(Color.drGrey5)
 #endif
         .fixedSize()
     }
