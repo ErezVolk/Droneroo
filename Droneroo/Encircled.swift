@@ -32,14 +32,18 @@ struct EncircledToggleStyle: ToggleStyle {
     var onRadius: CGFloat = 10
     var offRadius: CGFloat = 3
     var textFont: Font?
-
+    var onTextColor: Color = .onToggleText
+    var onBackColor: Color = .onToggleBack
+    var offTextColor: Color = .offToggleText
+    var offBackColor: Color = .offToggleBack
+    
     func makeBody(configuration: Configuration) -> some View {
         configuration.label
             .encircle(
                 diameter: self.diameter,
                 shadowRadius: configuration.isOn ? onRadius: offRadius,
-                textColor: configuration.isOn ? .onToggleText : .offToggleText,
-                circleColor: configuration.isOn ? .onToggleBack : .offToggleBack,
+                textColor: configuration.isOn ? onTextColor : offTextColor,
+                circleColor: configuration.isOn ? onBackColor : offBackColor,
                 textFont: self.textFont)
     }
 }

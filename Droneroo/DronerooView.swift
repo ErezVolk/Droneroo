@@ -35,7 +35,7 @@ struct DronerooView: View {
 
     var body: some View {
         ZStack {
-            Color.dronerooBack
+            Color.drPurple8
                 .ignoresSafeArea()
 
             VStack(spacing: 20) {
@@ -55,6 +55,7 @@ struct DronerooView: View {
 
                 ZStack {
                     sequencePicker
+                        .colorMultiply(.drGrey8)
                     HStack {
                         Spacer()
                         signpost
@@ -62,6 +63,7 @@ struct DronerooView: View {
                 }
 
                 instrumentPanel
+                    .colorMultiply(.drGrey8)
             }
             .padding()
             .onAppear {
@@ -82,23 +84,28 @@ struct DronerooView: View {
         }
     }
 
-    /// The "previous/next tone" circles
-    func prevNextButton(text: String, cond: Bool) -> some View {
-        return Text(text)
-            .encircle(
-                diameter: 80,
-                shadowRadius: cond ? 6 : 3,
-                textColor: cond ? .circleText : .otherCircleText,
-                circleColor: cond ? .circleBack : .otherCircleBack)
-    }
-
     /// The "current tone" circle and keyboard event receiver
     var middleButton: some View {
         Toggle(audioManager.currentNoteName, isOn: $audioManager.isPlaying)
             .focusable()
             .focused($focused)
             .onAppear { focused = true }
-            .toggleStyle(EncircledToggleStyle())
+            .toggleStyle(EncircledToggleStyle(
+                onTextColor: .drGreen4,
+                onBackColor: .drGrey9,
+                offTextColor: .drGreen3,
+                offBackColor: .drGrey8
+            ))
+    }
+    
+    /// The "previous/next tone" circles
+    func prevNextButton(text: String, cond: Bool) -> some View {
+        return Text(text)
+            .encircle(
+                diameter: 80,
+                shadowRadius: cond ? 6 : 3,
+                textColor: cond ? .drGreen2 : .drGreen1,
+                circleColor: cond ? .drGrey7 : .drGrey6)
     }
 
     /// The sequence type (circle of fourths, etc.) picker
@@ -157,8 +164,8 @@ struct DronerooView: View {
     var signpost: some View {
         Image(systemName: direction > 0 ? "signpost.right.fill" : "signpost.left.fill")
             .encircle(diameter: 40,
-                      textColor: .directionText,
-                      circleColor: .directionBack,
+                      textColor: .drGreen3,
+                      circleColor: .drGrey8,
                       textFont: .body)
             .onTapGesture { direction = -direction }
     }
