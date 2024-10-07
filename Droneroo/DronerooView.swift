@@ -189,11 +189,8 @@ struct DronerooView: View {
     var identityOverlay: some View {
         VStack {
             Spacer()
-            HStack {
-                Spacer()
-                Label(getWhoAmI(), systemImage: "")
-                    .font(.caption)
-            }
+            Label(getWhoAmI(), systemImage: "")
+                .font(.caption)
         }
         .padding()
         .opacity(0.7)
