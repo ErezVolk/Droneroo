@@ -1,7 +1,8 @@
 #  TODO List
 
 - Move audio settings to a window
-- Pick a drone (from the current sequence) NOW (wheel)
+- https://stackoverflow.com/questions/37296929/implement-document-picker
+- Pick a note (from the current sequence) NOW (wheel)
 - Piano keyboard
 - Support chords
 - "About..." (how does that work in mobile?)
