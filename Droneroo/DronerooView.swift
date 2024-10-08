@@ -10,7 +10,7 @@ enum Instrument: String, CaseIterable, Identifiable {
 }
 
 extension View {
-    /// Convenience wrapper around `.onKeyPress` so action can be a one-liner.
+    /// Convenience wrapper around `.onKeyPress` so `action` can be a one-liner.
     func handleKey(_ key: KeyEquivalent, action: @escaping () -> Void) -> some View {
         return self.onKeyPress(key) {
             action()
@@ -185,7 +185,7 @@ struct DronerooView: View {
             .ignoresSafeArea()
     }
 
-    /// Shows the app name and version i
+    /// Shows the app name and version in the background
     var identityOverlay: some View {
         VStack {
             Spacer()
