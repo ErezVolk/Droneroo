@@ -77,12 +77,12 @@ class DronerooLogic: NSObject, ObservableObject {
     
     func applyVelocity() {
         guard instrument != nil else { return }
-        timeOut() // Restarting the sound will play with the new velocity
+        lull() // Restarting the sound will play with the new velocity
     }
 
     /// Reset to the default Beep sound
     func resetInstrument() {
-        timeOut { _ in
+        lull { _ in
             newSampler()
         }
     }
@@ -103,7 +103,7 @@ class DronerooLogic: NSObject, ObservableObject {
 
     /// Load a SoundFont file
     func loadInstrument(_ url: URL? = nil) {
-        timeOut { wasPlaying in
+        lull { wasPlaying in
             do {
                 let actual = url ?? defaultInstrument
                 try sampler.loadSoundBankInstrument(
@@ -115,7 +115,7 @@ class DronerooLogic: NSObject, ObservableObject {
 
                 if wasPlaying {
                     // Loading a new instrument can disable sound, so flip off and on after a short delay
-                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) { self.timeOut() }
+                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) { self.lull() }
                 }
             } catch {
                 print("Couldn't load instrument: \(error.localizedDescription)")
@@ -188,14 +188,15 @@ class DronerooLogic: NSObject, ObservableObject {
     /// Update the current note, based on `delta` and `sequenceOrder`
     func changeDrone(_ delta: Int) {
         let mod = noteSequence.count
-        timeOut { _ in
+        lull { _ in
             currentIndex = (((currentIndex + delta) % mod) + mod) % mod
             setCurrentNote()
         }
     }
 
     /// Do `action` while not playing (pause and resume if called while playing)
-    private func timeOut(_ action: (_ wasPlaying: Bool) -> Void = {_ in ()}) {
+    /// When `action` is not given, this just makes sure playback stops and starts, so changes (e.g., instrument) take effect
+    private func lull(_ action: (_ wasPlaying: Bool) -> Void = {_ in ()}) {
         let wasPlaying = isPlaying
         if wasPlaying { stopDrone() }
         action(wasPlaying)
@@ -204,7 +205,7 @@ class DronerooLogic: NSObject, ObservableObject {
 
     /// Configure the actual sequence of notes, based on `sequenceType`.
     func loadSequence() {
-        timeOut { _ in
+        lull { _ in
             currentIndex = 0
             switch sequenceType {
             case .circleOfFourth:
