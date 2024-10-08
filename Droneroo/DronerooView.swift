@@ -46,8 +46,8 @@ struct DronerooView: View {
                     middleButton
                         .handleKey(.leftArrow) { toChangeNote -= direction }
                         .handleKey(.rightArrow) { toChangeNote += direction }
-                        .handleKey(.space) { toToggleDrone = !toToggleDrone }
-                        .onTapGesture { toToggleDrone = !toToggleDrone }
+                        .handleKey(.space) { toToggleDrone.toggle() }
+                        .onTapGesture { toToggleDrone.toggle() }
 
                     prevNextButton(text: audioManager.nextNoteName, cond: direction > 0)
                         .onTapGesture { toChangeNote += 1 }
