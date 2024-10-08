@@ -147,10 +147,7 @@ struct DronerooView: View {
                 Text(logic.instrument ?? "None")
                     .monospaced()
             }
-            
-            Slider(value: $logic.volume, in:0...1) { Text("Volume") }
-            Slider(value: $logic.velocity, in:0...1) { Text("Velocity") }
-                .disabled(logic.instrument == nil)
+
 #else
             Picker("Instrument", selection: $instrument) {
                 ForEach(Instrument.allCases) { instrument in
@@ -161,12 +158,24 @@ struct DronerooView: View {
             .fixedSize()
             .onChange(of: instrument) {
                 switch instrument {
-                case .strings: audioManager.loadInstrument()
-                case .beep: audioManager.resetInstrument()
+                case .strings: logic.loadInstrument()
+                case .beep: logic.resetInstrument()
                 }
             }
 #endif
+            slider(value: $logic.volume, lo: "speaker", hi: "speaker.wave.3", help: "Volume")
+            slider(value: $logic.velocity, lo: "dial.low", hi: "dial.high", help: "MIDI Velocity")
+                .disabled(logic.instrument == nil)
         }
+    }
+
+    /// Slider with label showing (on iOS it doesn't)
+    func slider(value: Binding<Double>, lo: String, hi: String, help: String) -> some View {
+        return HStack {
+            Label("", systemImage: lo).foregroundStyle(Color(.drGreen2))
+            Slider(value: value, in: 0...1) { EmptyView() }
+            Label("", systemImage: hi).foregroundStyle(Color(.drGreen2))
+        }.padding(.horizontal)
     }
 
     /// The "which way" button
