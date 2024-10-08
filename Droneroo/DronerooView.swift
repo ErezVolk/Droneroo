@@ -91,9 +91,9 @@ struct DronerooView: View {
             .onAppear { focused = true }
             .toggleStyle(EncircledToggleStyle(
                 onTextColor: .drGreen4,
-                onBackColor: .drGrey9,
+                onBackColor: .drGrey8,
                 offTextColor: .drGreen3,
-                offBackColor: .drGrey8
+                offBackColor: .drGrey7
             ))
     }
 

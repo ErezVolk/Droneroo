@@ -16,8 +16,8 @@ struct Encircled: ViewModifier {
 extension View {
     func encircle(diameter: Int = 104,
                   shadowRadius: CGFloat = 3,
-                  textColor: Color = .circleText,
-                  circleColor: Color = .circleBack,
+                  textColor: Color,
+                  circleColor: Color,
                   textFont: Font? = nil) -> some View {
         font(textFont ?? .system(size: CGFloat(diameter / 4)))
             .foregroundColor(textColor)
@@ -32,10 +32,10 @@ struct EncircledToggleStyle: ToggleStyle {
     var onRadius: CGFloat = 10
     var offRadius: CGFloat = 3
     var textFont: Font?
-    var onTextColor: Color = .onToggleText
-    var onBackColor: Color = .onToggleBack
-    var offTextColor: Color = .offToggleText
-    var offBackColor: Color = .offToggleBack
+    var onTextColor: Color
+    var onBackColor: Color
+    var offTextColor: Color
+    var offBackColor: Color
 
     func makeBody(configuration: Configuration) -> some View {
         configuration.label
