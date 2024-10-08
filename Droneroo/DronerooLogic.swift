@@ -19,12 +19,12 @@ class DronerooLogic: NSObject, ObservableObject {
     @Published var currentNoteName: String = "None"
     @Published var previousNoteName: String = "N/A"
     @Published var nextNoteName: String = "N/A"
-    @Published var volume: Float = 1.0
     @Published var instrument: String = "None"
     @Published var isPlaying = false
     @Published var isReversed = false
     @Published var sequenceType: SequenceType = .circleOfFourth
-    private let velocity: UInt8 = 101
+    private let volume: Float = 1.0
+    private let velocity: UInt8 = 127
     private let sharps = ["C", "C♯", "D", "D♯", "E", "F", "F♯", "G", "G♯", "A", "A♯", "B"]
     private let flats = ["C", "D♭", "D", "E♭", "E", "F", "G♭", "G", "A♭", "A", "B♭", "B"]
     private let audioEngine = AVAudioEngine()
@@ -33,7 +33,6 @@ class DronerooLogic: NSObject, ObservableObject {
     private var nameSequence: [String] = []
     private var currentIndex = 0
     private var currentNote: UInt8!
-    private var cancellables = Set<AnyCancellable>()
     // From http://johannes.roussel.free.fr/music/soundfonts.htm
     private let defaultInstrument = Bundle.main.url(forResource: "JR_String2", withExtension: "sf2")!
 #if os(macOS)
@@ -49,17 +48,7 @@ class DronerooLogic: NSObject, ObservableObject {
 
     private func setupAudioEngine() {
         connectSampler()
-
-        // Set initial volume
         audioEngine.mainMixerNode.outputVolume = volume
-
-        // Observe volume changes
-        $volume
-            .receive(on: RunLoop.main)
-            .sink { [weak self] newVolume in
-                self?.audioEngine.mainMixerNode.outputVolume = newVolume
-            }
-            .store(in: &cancellables)
 
         do {
             try audioEngine.start()
