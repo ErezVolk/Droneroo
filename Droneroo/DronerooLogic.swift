@@ -19,12 +19,12 @@ class DronerooLogic: NSObject, ObservableObject {
     @Published var currentNoteName: String = "None"
     @Published var previousNoteName: String = "N/A"
     @Published var nextNoteName: String = "N/A"
-    @Published var volume: Float = 1.0
-    @Published var instrument: String = "None"
+    @Published var volume: Double = 1.0
+    @Published var velocity: Double = 0.8
+    @Published var instrument: String? = nil
     @Published var isPlaying = false
     @Published var isReversed = false
     @Published var sequenceType: SequenceType = .circleOfFourth
-    private let velocity: UInt8 = 101
     private let sharps = ["C", "C♯", "D", "D♯", "E", "F", "F♯", "G", "G♯", "A", "A♯", "B"]
     private let flats = ["C", "D♭", "D", "E♭", "E", "F", "G♭", "G", "A♭", "A", "B♭", "B"]
     private let audioEngine = AVAudioEngine()
@@ -49,22 +49,36 @@ class DronerooLogic: NSObject, ObservableObject {
 
     private func setupAudioEngine() {
         connectSampler()
+        applyVolume()
 
-        // Set initial volume
-        audioEngine.mainMixerNode.outputVolume = volume
-
-        // Observe volume changes
-        $volume
-            .receive(on: RunLoop.main)
-            .sink { [weak self] newVolume in
-                self?.audioEngine.mainMixerNode.outputVolume = newVolume
-            }
-            .store(in: &cancellables)
+        listen(to: $volume) { self.applyVolume() }
+        listen(to: $velocity) { self.applyVelocity() }
 
         do {
             try audioEngine.start()
         } catch {
             print("Audio Engine couldn't start: \(error.localizedDescription)")
+        }
+    }
+    
+    /// Create a new receive thingy
+    func listen(to published: Published<Double>.Publisher, action: @escaping () -> Void) {
+        published
+            .receive(on: RunLoop.main)
+            .sink { _ in
+                action()
+            }
+            .store(in: &cancellables)
+    }
+
+    func applyVolume() {
+        self.audioEngine.mainMixerNode.outputVolume = Float(volume)
+    }
+    
+    func applyVelocity() {
+        guard instrument != nil else { return }
+        timeOut { _ in
+            () // Restarting the sound will play with the new velocity
         }
     }
 
@@ -80,7 +94,7 @@ class DronerooLogic: NSObject, ObservableObject {
         assert(!isPlaying)
         audioEngine.detach(sampler)
         sampler = AVAudioUnitSampler()
-        instrument = "None"
+        instrument = nil
         connectSampler()
     }
 
@@ -116,6 +130,7 @@ class DronerooLogic: NSObject, ObservableObject {
     private func startDrone() {
         guard !isPlaying else { return }
         setCurrentNote() // Probably redundant, but can't hurt
+        let velocity = UInt8(self.velocity * 127)
         sampler.startNote(currentNote, withVelocity: velocity, onChannel: 0)
         sampler.startNote(currentNote + 12, withVelocity: velocity, onChannel: 0)
         setIsPlaying(true)

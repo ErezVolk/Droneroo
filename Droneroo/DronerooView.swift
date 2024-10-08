@@ -20,7 +20,7 @@ extension View {
 }
 
 struct DronerooView: View {
-    @StateObject private var audioManager = DronerooLogic()
+    @StateObject private var logic = DronerooLogic()
     @State private var selectedSequence: SequenceType = .circleOfFourth
     @FocusState private var focused: Bool
     /// How much to add to the current note index when the right arrow key is pressed ("forward")
@@ -40,7 +40,7 @@ struct DronerooView: View {
 
             VStack(spacing: 20) {
                 HStack {
-                    prevNextButton(text: audioManager.previousNoteName, cond: direction < 0)
+                    prevNextButton(text: logic.previousNoteName, cond: direction < 0)
                         .onTapGesture { toChangeNote -= 1 }
 
                     middleButton
@@ -49,7 +49,7 @@ struct DronerooView: View {
                         .handleKey(.space) { toToggleDrone.toggle() }
                         .onTapGesture { toToggleDrone.toggle() }
 
-                    prevNextButton(text: audioManager.nextNoteName, cond: direction > 0)
+                    prevNextButton(text: logic.nextNoteName, cond: direction > 0)
                         .onTapGesture { toChangeNote += 1 }
                 }
 
@@ -66,26 +66,26 @@ struct DronerooView: View {
             }
             .padding()
             .onAppear {
-                audioManager.loadSequence()
+                logic.loadSequence()
             }
             .onChange(of: toToggleDrone) {
-                if toToggleDrone { audioManager.toggleDrone() }
+                if toToggleDrone { logic.toggleDrone() }
                 toToggleDrone = false
             }
             .onChange(of: toChangeNote) {
-                if toChangeNote != 0 { audioManager.changeDrone(toChangeNote) }
+                if toChangeNote != 0 { logic.changeDrone(toChangeNote) }
                 toChangeNote = 0
             }
             .onChange(of: selectedSequence) {
-                audioManager.sequenceType = selectedSequence
-                audioManager.loadSequence()
+                logic.sequenceType = selectedSequence
+                logic.loadSequence()
             }
         }
     }
 
     /// The "current tone" circle and keyboard event receiver
     var middleButton: some View {
-        Toggle(audioManager.currentNoteName, isOn: $audioManager.isPlaying)
+        Toggle(logic.currentNoteName, isOn: $logic.isPlaying)
             .focusable()
             .focused($focused)
             .onAppear { focused = true }
@@ -126,6 +126,7 @@ struct DronerooView: View {
 
     /// Selection of MIDI instrument to play
     var instrumentPanel: some View {
+        VStack {
 #if os(macOS)
             HStack {
                 Button("Load SoundFont...") {
@@ -133,19 +134,23 @@ struct DronerooView: View {
                     panel.allowsMultipleSelection = false
                     panel.canChooseDirectories = false
                     if panel.runModal() == .OK {
-                        audioManager.loadInstrument(panel.url!)
+                        logic.loadInstrument(panel.url!)
                     }
                 }
                 Button(Instrument.strings.rawValue) {
-                    audioManager.loadInstrument()
+                    logic.loadInstrument()
                 }
                 Button(Instrument.beep.rawValue) {
-                    audioManager.resetInstrument()
+                    logic.resetInstrument()
                 }
-
-                Text(audioManager.instrument)
+                
+                Text(logic.instrument ?? "None")
                     .monospaced()
             }
+            
+            Slider(value: $logic.volume, in:0...1) { Text("Volume") }
+            Slider(value: $logic.velocity, in:0...1) { Text("Velocity") }
+                .disabled(logic.instrument == nil)
 #else
             Picker("Instrument", selection: $instrument) {
                 ForEach(Instrument.allCases) { instrument in
@@ -161,6 +166,7 @@ struct DronerooView: View {
                 }
             }
 #endif
+        }
     }
 
     /// The "which way" button
