@@ -62,7 +62,7 @@ class DronerooLogic: NSObject, ObservableObject {
     }
     
     /// Create a new receive thingy
-    func listen(to published: Published<Double>.Publisher, action: @escaping () -> Void) {
+    func listen<T>(to published: Published<T>.Publisher, action: @escaping () -> Void) {
         published
             .receive(on: RunLoop.main)
             .sink { _ in
@@ -72,14 +72,12 @@ class DronerooLogic: NSObject, ObservableObject {
     }
 
     func applyVolume() {
-        self.audioEngine.mainMixerNode.outputVolume = Float(volume)
+        audioEngine.mainMixerNode.outputVolume = Float(volume)
     }
     
     func applyVelocity() {
         guard instrument != nil else { return }
-        timeOut { _ in
-            () // Restarting the sound will play with the new velocity
-        }
+        timeOut() // Restarting the sound will play with the new velocity
     }
 
     /// Reset to the default Beep sound
@@ -117,7 +115,7 @@ class DronerooLogic: NSObject, ObservableObject {
 
                 if wasPlaying {
                     // Loading a new instrument can disable sound, so flip off and on after a short delay
-                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) { self.timeOut { _ in /* NOP */ } }
+                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) { self.timeOut() }
                 }
             } catch {
                 print("Couldn't load instrument: \(error.localizedDescription)")
@@ -197,7 +195,7 @@ class DronerooLogic: NSObject, ObservableObject {
     }
 
     /// Do `action` while not playing (pause and resume if called while playing)
-    private func timeOut(_ action: (_ wasPlaying: Bool) -> Void) {
+    private func timeOut(_ action: (_ wasPlaying: Bool) -> Void = {_ in ()}) {
         let wasPlaying = isPlaying
         if wasPlaying { stopDrone() }
         action(wasPlaying)
