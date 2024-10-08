@@ -3,14 +3,15 @@
 import CoreFoundation
 import Foundation
 
-/// Helper to get a value from the bundle's info dictionary
-private func getBundleProperty(_ key: CFString) -> String {
-    return Bundle.main.infoDictionary?[key as String] as? String ?? "???"
-}
-
 /// Just for fun, figure out our name and version programmatically
 func getWhoAmI() -> String {
-    let app = getBundleProperty(kCFBundleNameKey)
-    let ver = getBundleProperty("CFBundleShortVersionString" as CFString)
+    guard let props = Bundle.main.infoDictionary else { return "???" }
+
+    func prop(_ key: String) -> String {
+        return props[key] as? String ?? "???"
+    }
+
+    let app = prop(kCFBundleNameKey as String)
+    let ver = prop("CFBundleShortVersionString")
     return "\(app) v\(ver)"
 }
