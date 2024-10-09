@@ -130,7 +130,7 @@ struct DronerooView: View {
 #if os(macOS)
             HStack {
                 Button("Load SoundFont...") {
-                    if let url = pickSoundFont(self) {
+                    if let url = pickSoundFont() {
                         logic.loadInstrument(url)
                     }
                 }
