@@ -1,9 +1,11 @@
 //  Created by Erez Volk
 import SwiftUI
 import UIKit
+import UniformTypeIdentifiers
 
 struct FilePickerIOS: UIViewControllerRepresentable {
     @Binding var fileURL: URL?
+    let types: [UTType]
     @Environment(\.presentationMode) var presentationMode
 
     func makeCoordinator() -> Coordinator {
@@ -11,7 +13,7 @@ struct FilePickerIOS: UIViewControllerRepresentable {
     }
 
     func makeUIViewController(context: Context) -> UIDocumentPickerViewController {
-        let controller = UIDocumentPickerViewController(forOpeningContentTypes: [.item])
+        let controller = UIDocumentPickerViewController(forOpeningContentTypes: types)
         controller.delegate = context.coordinator
         return controller
     }

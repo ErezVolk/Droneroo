@@ -2,6 +2,7 @@
 
 import SwiftUI
 import Combine
+import UniformTypeIdentifiers
 
 enum Instrument: String, CaseIterable, Identifiable {
     case strings = "Strings"
@@ -29,6 +30,7 @@ struct DronerooView: View {
     @State private var toChangeNote = 0
     // Since calling `audioManager` from `.onTap` issues errors, save them aside
     @State private var toToggleDrone = false
+    private let instrumentTypes = [UTType(filenameExtension: "sf2")!]
     
     var body: some View {
         ZStack {
@@ -137,7 +139,7 @@ struct DronerooView: View {
                     isSoundFontPickerPresented = true
                 }
                 .sheet(isPresented: $isSoundFontPickerPresented) {
-                    FilePickerIOS(fileURL: $soundFontUrl)
+                    FilePickerIOS(fileURL: $soundFontUrl, types: instrumentTypes)
                 }
                 .onChange(of: isSoundFontPickerPresented) {
                     if !isSoundFontPickerPresented {
@@ -215,6 +217,7 @@ struct DronerooView: View {
 #if os(macOS)
     func pickSoundFont() -> URL? {
         let panel = NSOpenPanel()
+        panel.allowedContentTypes = instrumentTypes
         panel.allowsMultipleSelection = false
         panel.canChooseDirectories = false
         if panel.runModal() == .OK {
