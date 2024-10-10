@@ -3,9 +3,7 @@
 - Reduce amount of `#if os()` in the code
 - Different color scheme for desktop, at the very least something more somber and less pastel
   - Lookup "different color schemes on iOS/Mac"
-- Move audio settings to a window
-- https://stackoverflow.com/questions/37296929/implement-document-picker
-- Pick a note (from the current sequence) NOW (wheel)
+- Jump to note (from the current sequence) NOW (wheel)
 - Piano keyboard
 - Support chords
 - "About..." (how does that work in mobile?)

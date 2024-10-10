@@ -18,7 +18,7 @@ class DronerooLogic: NSObject, ObservableObject {
     @Published var nextNoteName: String = "N/A"
     @Published var volume: Double = 1.0
     @Published var velocity: Double = 0.8
-    @Published var instrument: String? = nil
+    @Published var instrument: String?
     @Published var isPlaying = false
     @Published var isReversed = false
     @Published var sequenceType: SequenceType = .circleOfFourth
@@ -55,7 +55,7 @@ class DronerooLogic: NSObject, ObservableObject {
             print("Audio Engine couldn't start: \(error.localizedDescription)")
         }
     }
-    
+
     /// Create a new receive thingy
     func listen<T>(to published: Published<T>.Publisher, action: @escaping () -> Void) {
         published
@@ -69,7 +69,7 @@ class DronerooLogic: NSObject, ObservableObject {
     func applyVolume() {
         audioEngine.mainMixerNode.outputVolume = Float(volume)
     }
-    
+
     func applyVelocity() {
         guard instrument != nil else { return }
         lull() // Restarting the sound will play with the new velocity
@@ -170,7 +170,8 @@ class DronerooLogic: NSObject, ObservableObject {
     }
 
     /// Do `action` while not playing (pause and resume if called while playing)
-    /// When `action` is not given, this just makes sure playback stops and starts, so changes (e.g., instrument) take effect
+    /// When `action` is not given, this just makes sure playback stops and starts,
+    /// so changes (e.g., instrument) take effect
     private func lull(_ action: (_ wasPlaying: Bool) -> Void = {_ in ()}) {
         let wasPlaying = isPlaying
         if wasPlaying { stopDrone() }

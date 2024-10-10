@@ -31,35 +31,33 @@ struct DronerooView: View {
     // Since calling `audioManager` from `.onTap` issues errors, save them aside
     @State private var toToggleDrone = false
     private let soundbankTypes = [UTType(filenameExtension: "sf2")!, UTType(filenameExtension: "dfs")!]
-    
+
     var body: some View {
         ZStack {
             backgroundGradient
             identityOverlay
-            
+
             VStack(spacing: 20) {
                 HStack {
                     prevNextButton(text: logic.previousNoteName, cond: direction < 0)
                         .onTapGesture { toChangeNote -= 1 }
-                    
+
                     middleButton
                         .handleKey(.leftArrow) { toChangeNote -= direction }
                         .handleKey(.rightArrow) { toChangeNote += direction }
                         .handleKey(.space) { toToggleDrone.toggle() }
                         .onTapGesture { toToggleDrone.toggle() }
-                    
+
                     prevNextButton(text: logic.nextNoteName, cond: direction > 0)
                         .onTapGesture { toChangeNote += 1 }
                 }
-                
-                ZStack {
+
+                HStack {
+                    signpost.hidden()  // Hack for centering
                     sequencePicker
-                    HStack {
-                        Spacer()
-                        signpost
-                    }
+                    signpost
                 }
-                
+
                 instrumentPanel
                     .colorMultiply(.drGrey8)
             }
@@ -82,7 +80,7 @@ struct DronerooView: View {
             }
         }
     }
-    
+
     /// The "current tone" circle and keyboard event receiver
     var middleButton: some View {
         Toggle(logic.currentNoteName, isOn: $logic.isPlaying)
@@ -96,7 +94,7 @@ struct DronerooView: View {
                 offBackColor: .drGrey7
             ))
     }
-    
+
     /// The "previous/next tone" circles
     func prevNextButton(text: String, cond: Bool) -> some View {
         return Text(text)
@@ -106,7 +104,7 @@ struct DronerooView: View {
                 textColor: cond ? .drGreen2 : .drGreen1,
                 circleColor: cond ? .drGrey7 : .drGrey6)
     }
-    
+
     /// The sequence type (circle of fourths, etc.) picker
     var sequencePicker: some View {
         Picker("", selection: $selectedSequence) {
@@ -123,75 +121,42 @@ struct DronerooView: View {
 #endif
         .fixedSize()
     }
-    
-    /// Selection of MIDI instrument to play
-    var instrumentPanel: some View {
-#if os(macOS)
-        VStack {
-            HStack {
-                Button("Load Soundbank...") {
-                    if let url = pickSoundFont() {
-                        logic.loadInstrument(url)
-                    }
-                }
-                stringsButton
-                beepButton
-            }
-            Text(logic.instrument ?? "None")
-                .monospaced()
-            slider(value: $logic.volume, lo: "speaker", hi: "speaker.wave.3", help: "Volume")
-            slider(value: $logic.velocity, lo: "dial.low", hi: "dial.high", help: "MIDI Velocity")
-                .disabled(logic.instrument == nil)
-        }
-#else
-        VStack {
-            HStack {
-                Button("Load...") {
-                    isSoundFontPickerPresented = true
-                }
-                .sheet(isPresented: $isSoundFontPickerPresented) {
-                    FilePickerIOS(fileURL: $soundFontUrl, types: soundbankTypes)
-                }
-                .onChange(of: isSoundFontPickerPresented) {
-                    if !isSoundFontPickerPresented {
-                        if let url = soundFontUrl {
-                            logic.loadInstrument(url)
-                        }
-                    }
-                }
-                stringsButton
-                beepButton
-            }
-            Text(logic.instrument ?? "None")
-                .monospaced()
-            slider(value: $logic.volume, lo: "speaker", hi: "speaker.wave.3", help: "Volume")
-            slider(value: $logic.velocity, lo: "dial.low", hi: "dial.high", help: "MIDI Velocity")
-                .disabled(logic.instrument == nil)
-        }
-#endif
+
+    var instrumentText: some View {
+        Text(logic.instrument ?? "None")
+            .monospaced()
     }
-    
-    var stringsButton : some View {
+
+    var volumeSlider: some View {
+        slider(value: $logic.volume, low: "speaker", high: "speaker.wave.3", help: "Volume")
+    }
+
+    var velocitySlider: some View {
+        slider(value: $logic.velocity, low: "dial.low", high: "dial.high", help: "MIDI Velocity")
+            .disabled(logic.instrument == nil)
+    }
+
+    var stringsButton: some View {
         Button(Instrument.strings.rawValue) {
             logic.loadInstrument()
         }
     }
-    
+
     var beepButton: some View {
         Button(Instrument.beep.rawValue) {
             logic.resetInstrument()
         }
     }
-    
+
     /// Slider with label showing (on iOS it doesn't)
-    func slider(value: Binding<Double>, lo: String, hi: String, help: String) -> some View {
+    func slider(value: Binding<Double>, low: String, high: String, help: String) -> some View {
         return HStack {
-            Label("", systemImage: lo).foregroundStyle(Color(.drGreen2))
+            Label("", systemImage: low).foregroundStyle(Color(.drGreen2))
             Slider(value: value, in: 0...1) { EmptyView() }
-            Label("", systemImage: hi).foregroundStyle(Color(.drGreen2))
+            Label("", systemImage: high).foregroundStyle(Color(.drGreen2))
         }.padding(.horizontal)
     }
-    
+
     /// The "which way" button
     var signpost: some View {
         Image(systemName: direction > 0 ? "signpost.right.fill" : "signpost.left.fill")
@@ -201,7 +166,7 @@ struct DronerooView: View {
                       textFont: .body)
             .onTapGesture { direction = -direction }
     }
-    
+
     /// The background color
     var backgroundGradient: some View {
         LinearGradient(
@@ -213,7 +178,7 @@ struct DronerooView: View {
             endPoint: .bottomTrailing)
         .ignoresSafeArea()
     }
-    
+
     /// Shows the app name and version in the background
     var identityOverlay: some View {
         VStack {
@@ -224,7 +189,7 @@ struct DronerooView: View {
         .padding()
         .opacity(0.7)
     }
-    
+
 #if os(macOS)
     func pickSoundFont() -> URL? {
         let panel = NSOpenPanel()
@@ -236,8 +201,66 @@ struct DronerooView: View {
         }
         return nil
     }
+
+    var soundbankButton: some View {
+        Button("Load Soundbank...") {
+            if let url = pickSoundFont() {
+                logic.loadInstrument(url)
+            }
+        }
+    }
+
+    var instrumentPanel: some View {
+        VStack {
+            HStack {
+                soundbankButton
+                stringsButton
+                beepButton
+                instrumentText
+            }
+            volumeSlider
+            velocitySlider
+        }
+    }
 #else
-    @State private var soundFontUrl: URL?
-    @State private var isSoundFontPickerPresented = false
+    var instrumentPanel: some View {
+        Button("Audio", systemImage: "gearshape") {
+            isAudioSheetPresented = true
+        }
+        .sheet(isPresented: $isAudioSheetPresented) {
+            VStack {
+                HStack {
+                    soundbankButton
+                    stringsButton
+                    beepButton
+                }
+                instrumentText
+                volumeSlider
+                velocitySlider
+                Button("Close", systemImage: "xmark.circle") {
+                    isAudioSheetPresented = false
+                }
+            }
+        }
+    }
+
+    var soundbankButton: some View {
+        Button("Load...") {
+            isSoundbankPickerPresented = true
+        }
+        .sheet(isPresented: $isSoundbankPickerPresented) {
+            FilePickerIOS(fileURL: $soundbankUrl, types: soundbankTypes)
+        }
+        .onChange(of: isSoundbankPickerPresented) {
+            if !isSoundbankPickerPresented {
+                if let url = soundbankUrl {
+                    logic.loadInstrument(url)
+                }
+            }
+        }
+    }
+    @State private var soundbankUrl: URL?
+    @State private var isSoundbankPickerPresented = false
+    @State private var isAudioSheetPresented = false
 #endif
 }
