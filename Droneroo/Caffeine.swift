@@ -15,9 +15,7 @@ class Caffeine {
     private var assertionID: IOPMAssertionID = 0
 
     func stayUp(_ state: Bool) {
-        if state == (assertionID != 0) {
-            return
-        }
+        guard state != (assertionID != 0) else { return }
         if state {
             let status = IOPMAssertionCreateWithName(
                 kIOPMAssertionTypeNoDisplaySleep as CFString,
