@@ -123,7 +123,7 @@ struct DronerooView: View {
 
     var instrumentText: some View {
         Text(logic.instrument ?? "None")
-            .font(.caption.monospaced())
+            .font(.callout.monospaced())
     }
 
     var volumeSlider: some View {
