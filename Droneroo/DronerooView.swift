@@ -30,7 +30,7 @@ struct DronerooView: View {
     @State private var toChangeNote = 0
     // Since calling `audioManager` from `.onTap` issues errors, save them aside
     @State private var toToggleDrone = false
-    private let instrumentTypes = [UTType(filenameExtension: "sf2")!]
+    private let soundbankTypes = [UTType(filenameExtension: "sf2")!, UTType(filenameExtension: "dfs")!]
     
     var body: some View {
         ZStack {
@@ -139,7 +139,7 @@ struct DronerooView: View {
                     isSoundFontPickerPresented = true
                 }
                 .sheet(isPresented: $isSoundFontPickerPresented) {
-                    FilePickerIOS(fileURL: $soundFontUrl, types: instrumentTypes)
+                    FilePickerIOS(fileURL: $soundFontUrl, types: soundbankTypes)
                 }
                 .onChange(of: isSoundFontPickerPresented) {
                     if !isSoundFontPickerPresented {
