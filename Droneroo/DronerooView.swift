@@ -29,9 +29,6 @@ struct DronerooView: View {
     @State private var toChangeNote = 0
     // Since calling `audioManager` from `.onTap` issues errors, save them aside
     @State private var toToggleDrone = false
-#if os(iOS)
-    @State private var instrument: Instrument = .beep
-#endif
     
     var body: some View {
         ZStack {

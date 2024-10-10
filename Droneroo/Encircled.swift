@@ -1,6 +1,5 @@
 //  Created by Erez Volk
 
-import SwiftUICore
 import SwiftUI
 
 struct Encircled: ViewModifier {
