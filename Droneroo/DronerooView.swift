@@ -126,15 +126,26 @@ struct DronerooView: View {
     
     /// Selection of MIDI instrument to play
     var instrumentPanel: some View {
+#if os(macOS)
         VStack {
             HStack {
-#if os(macOS)
-                Button("Load SoundFont...") {
+                Button("Load Soundbank...") {
                     if let url = pickSoundFont() {
                         logic.loadInstrument(url)
                     }
                 }
+                stringsButton
+                beepButton
+            }
+            Text(logic.instrument ?? "None")
+                .monospaced()
+            slider(value: $logic.volume, lo: "speaker", hi: "speaker.wave.3", help: "Volume")
+            slider(value: $logic.velocity, lo: "dial.low", hi: "dial.high", help: "MIDI Velocity")
+                .disabled(logic.instrument == nil)
+        }
 #else
+        VStack {
+            HStack {
                 Button("Load...") {
                     isSoundFontPickerPresented = true
                 }
@@ -148,7 +159,6 @@ struct DronerooView: View {
                         }
                     }
                 }
-#endif
                 stringsButton
                 beepButton
             }
@@ -158,6 +168,7 @@ struct DronerooView: View {
             slider(value: $logic.velocity, lo: "dial.low", hi: "dial.high", help: "MIDI Velocity")
                 .disabled(logic.instrument == nil)
         }
+#endif
     }
     
     var stringsButton : some View {
@@ -217,7 +228,7 @@ struct DronerooView: View {
 #if os(macOS)
     func pickSoundFont() -> URL? {
         let panel = NSOpenPanel()
-        panel.allowedContentTypes = instrumentTypes
+        panel.allowedContentTypes = soundbankTypes
         panel.allowsMultipleSelection = false
         panel.canChooseDirectories = false
         if panel.runModal() == .OK {
