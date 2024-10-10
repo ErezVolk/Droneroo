@@ -228,7 +228,7 @@ struct DronerooView: View {
         }
         .foregroundStyle(Color.drGrey2)
         .sheet(isPresented: $isAudioSheetPresented) {
-            VStack {
+            VStack(spacing: 20) {
                 HStack {
                     soundbankButton
                     stringsButton
