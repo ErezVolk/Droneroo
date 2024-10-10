@@ -32,27 +32,27 @@ struct DronerooView: View {
 #if os(iOS)
     @State private var instrument: Instrument = .beep
 #endif
-
+    
     var body: some View {
         ZStack {
             backgroundGradient
             identityOverlay
-
+            
             VStack(spacing: 20) {
                 HStack {
                     prevNextButton(text: logic.previousNoteName, cond: direction < 0)
                         .onTapGesture { toChangeNote -= 1 }
-
+                    
                     middleButton
                         .handleKey(.leftArrow) { toChangeNote -= direction }
                         .handleKey(.rightArrow) { toChangeNote += direction }
                         .handleKey(.space) { toToggleDrone.toggle() }
                         .onTapGesture { toToggleDrone.toggle() }
-
+                    
                     prevNextButton(text: logic.nextNoteName, cond: direction > 0)
                         .onTapGesture { toChangeNote += 1 }
                 }
-
+                
                 ZStack {
                     sequencePicker
                     HStack {
@@ -60,10 +60,11 @@ struct DronerooView: View {
                         signpost
                     }
                 }
-
+                
                 instrumentPanel
                     .colorMultiply(.drGrey8)
             }
+            .buttonStyle(.bordered)
             .padding()
             .onAppear {
                 logic.loadSequence()
@@ -82,7 +83,7 @@ struct DronerooView: View {
             }
         }
     }
-
+    
     /// The "current tone" circle and keyboard event receiver
     var middleButton: some View {
         Toggle(logic.currentNoteName, isOn: $logic.isPlaying)
@@ -96,7 +97,7 @@ struct DronerooView: View {
                 offBackColor: .drGrey7
             ))
     }
-
+    
     /// The "previous/next tone" circles
     func prevNextButton(text: String, cond: Bool) -> some View {
         return Text(text)
@@ -106,7 +107,7 @@ struct DronerooView: View {
                 textColor: cond ? .drGreen2 : .drGreen1,
                 circleColor: cond ? .drGrey7 : .drGrey6)
     }
-
+    
     /// The sequence type (circle of fourths, etc.) picker
     var sequencePicker: some View {
         Picker("", selection: $selectedSequence) {
@@ -123,49 +124,55 @@ struct DronerooView: View {
 #endif
         .fixedSize()
     }
-
+    
     /// Selection of MIDI instrument to play
     var instrumentPanel: some View {
         VStack {
-#if os(macOS)
             HStack {
+#if os(macOS)
                 Button("Load SoundFont...") {
                     if let url = pickSoundFont() {
                         logic.loadInstrument(url)
                     }
                 }
-                Button(Instrument.strings.rawValue) {
-                    logic.loadInstrument()
-                }
-                Button(Instrument.beep.rawValue) {
-                    logic.resetInstrument()
-                }
-                
-                Text(logic.instrument ?? "None")
-                    .monospaced()
-            }
-
 #else
-            Picker("Instrument", selection: $instrument) {
-                ForEach(Instrument.allCases) { instrument in
-                    Text(instrument.rawValue).tag(instrument)
+                Button("Load...") {
+                    isSoundFontPickerPresented = true
                 }
-            }
-            .pickerStyle(.segmented)
-            .fixedSize()
-            .onChange(of: instrument) {
-                switch instrument {
-                case .strings: logic.loadInstrument()
-                case .beep: logic.resetInstrument()
+                .sheet(isPresented: $isSoundFontPickerPresented) {
+                    FilePickerIOS(fileURL: $soundFontUrl)
                 }
-            }
+                .onChange(of: isSoundFontPickerPresented) {
+                    if !isSoundFontPickerPresented {
+                        if let url = soundFontUrl {
+                            logic.loadInstrument(url)
+                        }
+                    }
+                }
 #endif
+                stringsButton
+                beepButton
+            }
+            Text(logic.instrument ?? "None")
+                .monospaced()
             slider(value: $logic.volume, lo: "speaker", hi: "speaker.wave.3", help: "Volume")
             slider(value: $logic.velocity, lo: "dial.low", hi: "dial.high", help: "MIDI Velocity")
                 .disabled(logic.instrument == nil)
         }
     }
-
+    
+    var stringsButton : some View {
+        Button(Instrument.strings.rawValue) {
+            logic.loadInstrument()
+        }
+    }
+    
+    var beepButton: some View {
+        Button(Instrument.beep.rawValue) {
+            logic.resetInstrument()
+        }
+    }
+    
     /// Slider with label showing (on iOS it doesn't)
     func slider(value: Binding<Double>, lo: String, hi: String, help: String) -> some View {
         return HStack {
@@ -174,7 +181,7 @@ struct DronerooView: View {
             Label("", systemImage: hi).foregroundStyle(Color(.drGreen2))
         }.padding(.horizontal)
     }
-
+    
     /// The "which way" button
     var signpost: some View {
         Image(systemName: direction > 0 ? "signpost.right.fill" : "signpost.left.fill")
@@ -184,7 +191,7 @@ struct DronerooView: View {
                       textFont: .body)
             .onTapGesture { direction = -direction }
     }
-
+    
     /// The background color
     var backgroundGradient: some View {
         LinearGradient(
@@ -194,9 +201,9 @@ struct DronerooView: View {
             ],
             startPoint: .top,
             endPoint: .bottomTrailing)
-            .ignoresSafeArea()
+        .ignoresSafeArea()
     }
-
+    
     /// Shows the app name and version in the background
     var identityOverlay: some View {
         VStack {
@@ -207,4 +214,19 @@ struct DronerooView: View {
         .padding()
         .opacity(0.7)
     }
+    
+#if os(macOS)
+    func pickSoundFont() -> URL? {
+        let panel = NSOpenPanel()
+        panel.allowsMultipleSelection = false
+        panel.canChooseDirectories = false
+        if panel.runModal() == .OK {
+            return panel.url!
+        }
+        return nil
+    }
+#else
+    @State private var soundFontUrl: URL?
+    @State private var isSoundFontPickerPresented = false
+#endif
 }
