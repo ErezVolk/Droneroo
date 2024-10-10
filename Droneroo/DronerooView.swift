@@ -111,13 +111,8 @@ struct DronerooView: View {
                 Text(sequence.rawValue).tag(sequence)
             }
         }
-#if os(macOS)
-        .pickerStyle(.segmented)
-        .colorMultiply(.drGrey8)
-#else
-        .colorMultiply(.drGreen2)
-        .background(Color.drGrey5)
-#endif
+        .pickerStyle(sequencePickerStyle)
+        .colorMultiply(sequencePickerTint)
         .fixedSize()
     }
 
@@ -190,6 +185,9 @@ struct DronerooView: View {
     }
 
 #if os(macOS)
+    private let sequencePickerStyle = SegmentedPickerStyle()
+    private let sequencePickerTint = Color.drGrey8
+
     func pickSoundFont() -> URL? {
         let panel = NSOpenPanel()
         panel.allowedContentTypes = soundbankTypes
@@ -222,6 +220,12 @@ struct DronerooView: View {
         }
     }
 #else
+    @State private var soundbankUrl: URL?
+    @State private var isSoundbankPickerPresented = false
+    @State private var isAudioSheetPresented = false
+    private let sequencePickerStyle = DefaultPickerStyle()
+    private let sequencePickerTint = Color.drGreen2
+
     var instrumentPanel: some View {
         Button("Audio", systemImage: "gearshape") {
             isAudioSheetPresented = true
@@ -261,8 +265,5 @@ struct DronerooView: View {
             }
         }
     }
-    @State private var soundbankUrl: URL?
-    @State private var isSoundbankPickerPresented = false
-    @State private var isAudioSheetPresented = false
 #endif
 }

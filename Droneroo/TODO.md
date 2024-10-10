@@ -1,6 +1,5 @@
 #  TODO List
 
-- Reduce amount of `#if os()` in the code
 - Different color scheme for desktop, at the very least something more somber and less pastel
   - Lookup "different color schemes on iOS/Mac"
 - Jump to note (from the current sequence) NOW (wheel)
