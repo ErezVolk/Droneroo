@@ -1,4 +1,4 @@
-//  Created by Erez Volk on 01/10/2024.
+//  Created by Erez Volk
 
 import SwiftUICore
 import SwiftUI

@@ -10,9 +10,22 @@
 		BA2E75AC2C99BAF8000CDBEE /* Droneroo.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Droneroo.app; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
+/* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
+		BA66A4602CB7C7E400DE3391 /* Exceptions for "Droneroo" folder in "Droneroo" target */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			platformFiltersByRelativePath = {
+				FilePickerIOS.swift = (ios, );
+			};
+			target = BA2E75AB2C99BAF8000CDBEE /* Droneroo */;
+		};
+/* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
+
 /* Begin PBXFileSystemSynchronizedRootGroup section */
 		BA2E75AE2C99BAF8000CDBEE /* Droneroo */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
+			exceptions = (
+				BA66A4602CB7C7E400DE3391 /* Exceptions for "Droneroo" folder in "Droneroo" target */,
+			);
 			path = Droneroo;
 			sourceTree = "<group>";
 		};

@@ -36,9 +36,7 @@ class DronerooLogic: NSObject, ObservableObject {
     private var cancellables = Set<AnyCancellable>()
     // From http://johannes.roussel.free.fr/music/soundfonts.htm
     private let defaultInstrument = Bundle.main.url(forResource: "JR_String2", withExtension: "sf2")!
-#if os(macOS)
-    private var assertionID: IOPMAssertionID = 0
-#endif
+    private let caffeine = Caffeine()
 
     override init() {
         super.init()
@@ -155,25 +153,7 @@ class DronerooLogic: NSObject, ObservableObject {
     private func setIsPlaying(_ newValue: Bool) {
         if newValue == isPlaying { return }
         isPlaying = newValue
-
-        #if os(macOS)
-        if newValue {
-            let status = IOPMAssertionCreateWithName(
-                kIOPMAssertionTypeNoDisplaySleep as CFString,
-                IOPMAssertionLevel(kIOPMAssertionLevelOn),
-                "Droneroo" as CFString,
-                &assertionID)
-            if status != kIOReturnSuccess {
-                print("Cannot disable sleep: \(status)")
-                assertionID = 0
-            }
-        } else {
-            IOPMAssertionRelease(assertionID)
-            assertionID = 0
-        }
-        #else
-        UIApplication.shared.isIdleTimerDisabled = newValue
-        #endif
+        caffeine.stayUp(newValue)
     }
 
     /// Pause/Play.

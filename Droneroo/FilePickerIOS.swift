@@ -1,6 +1,5 @@
+//  Created by Erez Volk
 import SwiftUI
-
-#if os(iOS)
 import UIKit
 
 struct FilePickerIOS: UIViewControllerRepresentable {
@@ -36,5 +35,3 @@ struct FilePickerIOS: UIViewControllerRepresentable {
         }
     }
 }
-
-#endif
