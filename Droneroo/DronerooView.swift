@@ -61,7 +61,6 @@ struct DronerooView: View {
                 instrumentPanel
                     .colorMultiply(.drGrey8)
             }
-            .buttonStyle(.bordered)
             .padding()
             .onAppear {
                 logic.loadSequence()
@@ -124,7 +123,7 @@ struct DronerooView: View {
 
     var instrumentText: some View {
         Text(logic.instrument ?? "None")
-            .monospaced()
+            .font(.caption.monospaced())
     }
 
     var volumeSlider: some View {
@@ -227,6 +226,7 @@ struct DronerooView: View {
         Button("Audio", systemImage: "gearshape") {
             isAudioSheetPresented = true
         }
+        .foregroundStyle(Color.drGrey2)
         .sheet(isPresented: $isAudioSheetPresented) {
             VStack {
                 HStack {
@@ -234,6 +234,7 @@ struct DronerooView: View {
                     stringsButton
                     beepButton
                 }
+                .buttonStyle(.bordered)
                 instrumentText
                 volumeSlider
                 velocitySlider
@@ -242,6 +243,7 @@ struct DronerooView: View {
                 }
             }
         }
+        .foregroundStyle(Color.primary)
     }
 
     var soundbankButton: some View {
