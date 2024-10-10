@@ -77,9 +77,7 @@ class DronerooLogic: NSObject, ObservableObject {
 
     /// Reset to the default Beep sound
     func resetInstrument() {
-        lull { _ in
-            newSampler()
-        }
+        lull { newSampler() }
     }
 
     /// Recreate sample, resetting to beep
@@ -165,7 +163,7 @@ class DronerooLogic: NSObject, ObservableObject {
     /// Update the current note, based on `delta` and `sequenceOrder`
     func changeDrone(_ delta: Int) {
         let mod = noteSequence.count
-        lull { _ in
+        lull {
             currentIndex = (((currentIndex + delta) % mod) + mod) % mod
             setCurrentNote()
         }
@@ -180,9 +178,17 @@ class DronerooLogic: NSObject, ObservableObject {
         if wasPlaying { startDrone() }
     }
 
+    /// Do `action` while not playing (pause and resume if called while playing)
+    /// A version of `lull()` that doesn't care about `wasPlaying`
+    private func lull(_ action: () -> Void) {
+        lull { _ in
+            action()
+        }
+    }
+
     /// Configure the actual sequence of notes, based on `sequenceType`.
     func loadSequence() {
-        lull { _ in
+        lull {
             currentIndex = 0
             switch sequenceType {
             case .circleOfFourth:
