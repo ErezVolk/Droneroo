@@ -10,6 +10,7 @@ class Caffeine {
     }
 }
 #else
+import IOKit.pwr_mgt
 
 class Caffeine {
     private var assertionID: IOPMAssertionID = 0
@@ -17,22 +18,30 @@ class Caffeine {
     func stayUp(_ state: Bool) {
         guard state != (assertionID != 0) else { return }
         if state {
-            let status = IOPMAssertionCreateWithName(
-                kIOPMAssertionTypeNoDisplaySleep as CFString,
-                IOPMAssertionLevel(kIOPMAssertionLevelOn),
-                "Droneroo" as CFString,
-                &assertionID)
-            if status != kIOReturnSuccess {
-                print("Cannot disable sleep: \(status)")
-                assertionID = 0
-            }
+            createAssertion()
         } else {
-            let status = IOPMAssertionRelease(assertionID)
-            if status == kIOReturnSuccess {
-                assertionID = 0
-            } else {
-                print("Cannot re-enable sleep: \(status)")
-            }
+            releaseAssertion()
+        }
+    }
+
+    private func createAssertion() {
+        let status = IOPMAssertionCreateWithName(
+            kIOPMAssertionTypeNoDisplaySleep as CFString,
+            IOPMAssertionLevel(kIOPMAssertionLevelOn),
+            "Droneroo" as CFString,
+            &assertionID)
+        if status != kIOReturnSuccess {
+            print("Cannot disable sleep: \(status)")
+            assertionID = 0
+        }
+    }
+
+    private func releaseAssertion() {
+        let status = IOPMAssertionRelease(assertionID)
+        if status == kIOReturnSuccess {
+            assertionID = 0
+        } else {
+            print("Cannot re-enable sleep: \(status)")
         }
     }
 }

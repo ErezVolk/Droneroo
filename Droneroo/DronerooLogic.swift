@@ -4,9 +4,6 @@ import Foundation
 import AVFoundation
 import SwiftUI
 import Combine
-#if os(macOS)
-import IOKit.pwr_mgt
-#endif
 
 enum SequenceType: String, CaseIterable, Identifiable {
     case circleOfFourth = "Circle of Fourths"
