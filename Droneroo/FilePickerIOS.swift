@@ -1,4 +1,5 @@
 //  Created by Erez Volk
+#if os(iOS)
 import SwiftUI
 import UIKit
 import UniformTypeIdentifiers
@@ -6,7 +7,7 @@ import UniformTypeIdentifiers
 struct FilePickerIOS: UIViewControllerRepresentable {
     @Binding var fileURL: URL?
     let types: [UTType]
-    @Environment(\.presentationMode) var presentationMode
+    @Environment(\.dismiss) var dismiss
 
     func makeCoordinator() -> Coordinator {
         Coordinator(self)
@@ -29,11 +30,12 @@ struct FilePickerIOS: UIViewControllerRepresentable {
 
         func documentPicker(_ controller: UIDocumentPickerViewController, didPickDocumentsAt urls: [URL]) {
             parent.fileURL = urls.first
-            parent.presentationMode.wrappedValue.dismiss()
+            parent.dismiss()
         }
 
         func documentPickerWasCancelled(_ controller: UIDocumentPickerViewController) {
-            parent.presentationMode.wrappedValue.dismiss()
+            parent.dismiss()
         }
     }
 }
+#endif
