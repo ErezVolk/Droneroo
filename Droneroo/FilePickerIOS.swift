@@ -7,7 +7,6 @@ import UniformTypeIdentifiers
 struct FilePickerIOS: UIViewControllerRepresentable {
     @Binding var fileURL: URL?
     let types: [UTType]
-    @Environment(\.dismiss) var dismiss
 
     func makeCoordinator() -> Coordinator {
         Coordinator(self)
@@ -22,7 +21,7 @@ struct FilePickerIOS: UIViewControllerRepresentable {
     func updateUIViewController(_ uiViewController: UIDocumentPickerViewController, context: Context) {}
 
     class Coordinator: NSObject, UIDocumentPickerDelegate {
-        var parent: FilePickerIOS
+        let parent: FilePickerIOS
 
         init(_ parent: FilePickerIOS) {
             self.parent = parent
@@ -30,11 +29,6 @@ struct FilePickerIOS: UIViewControllerRepresentable {
 
         func documentPicker(_ controller: UIDocumentPickerViewController, didPickDocumentsAt urls: [URL]) {
             parent.fileURL = urls.first
-            parent.dismiss()
-        }
-
-        func documentPickerWasCancelled(_ controller: UIDocumentPickerViewController) {
-            parent.dismiss()
         }
     }
 }
