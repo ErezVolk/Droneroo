@@ -116,9 +116,18 @@ struct DronerooView: View {
         .fixedSize()
     }
 
-    var instrumentText: some View {
-        Text(logic.instrument ?? "None")
-            .font(.callout.monospaced())
+    var instrumentView: some View {
+        HStack {
+            Text(logic.instrument ?? "None")
+                .font(.callout.monospaced())
+
+            Button("Next Program", systemImage: "waveform") {
+                logic.nextProgram()
+            }
+            .labelStyle(.iconOnly)
+            .fixedSize()
+            .disabled(logic.instrument == nil)
+        }
     }
 
     var volumeSlider: some View {
@@ -213,7 +222,7 @@ struct DronerooView: View {
                 soundbankButton
                 stringsButton
                 beepButton
-                instrumentText
+                instrumentView
             }
             volumeSlider
             velocitySlider
@@ -239,7 +248,7 @@ struct DronerooView: View {
                     beepButton
                 }
                 .buttonStyle(.bordered)
-                instrumentText
+                instrumentView
                 volumeSlider
                 velocitySlider
                 Button("Close", systemImage: "xmark.circle") {

@@ -24,6 +24,8 @@ class DronerooLogic: NSObject, ObservableObject {
     @Published var sequenceType: SequenceType = .circleOfFourth
     private let audioEngine = AVAudioEngine()
     private var sampler = AVAudioUnitSampler()
+    private var soundbank: URL?
+    private var program: UInt8 = 0
     private var noteSequence: [UInt8] = []
     private var nameSequence: [String] = []
     private var currentIndex = 0
@@ -84,6 +86,7 @@ class DronerooLogic: NSObject, ObservableObject {
         audioEngine.detach(sampler)
         sampler = AVAudioUnitSampler()
         instrument = nil
+        soundbank = nil
         connectSampler()
     }
 
@@ -95,23 +98,47 @@ class DronerooLogic: NSObject, ObservableObject {
     /// Load a SoundFont file
     func loadInstrument(_ url: URL? = nil) {
         lull { wasPlaying in
-            do {
-                let actual = url ?? defaultInstrument
-                try sampler.loadSoundBankInstrument(
-                    at: actual,
-                    program: 0,
-                    bankMSB: UInt8(kAUSampler_DefaultMelodicBankMSB),
-                    bankLSB: UInt8(kAUSampler_DefaultBankLSB))
-                instrument = actual.deletingPathExtension().lastPathComponent
-
-                if wasPlaying {
-                    // Loading a new instrument can disable sound, so flip off and on after a short delay
-                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) { self.lull() }
-                }
-            } catch {
-                print("Couldn't load instrument: \(error.localizedDescription)")
+            if !doLoadInstrument(soundbank: url ?? defaultInstrument, program: 0, wasPlaying: wasPlaying) {
                 newSampler()
             }
+        }
+    }
+
+    /// Within the current soundbank, try to load the next program
+    func nextProgram() {
+        guard let soundbank else { return }
+        lull { wasPlaying in
+            if !doLoadInstrument(soundbank: soundbank, program: program + 1, wasPlaying: wasPlaying) {
+                if !doLoadInstrument(soundbank: soundbank, program: 0, wasPlaying: wasPlaying) {
+                    newSampler()
+                }
+            }
+        }
+    }
+
+    /// Actually try to load a soundbank instrument (call when not playing)
+    /// On success, sets `self.soundbank` etc.
+    /// On failure, leaves them untouched (caller deals with it)
+    private func doLoadInstrument(soundbank: URL, program: UInt8, wasPlaying: Bool) -> Bool {
+        do {
+            try sampler.loadSoundBankInstrument(
+                at: soundbank,
+                program: program,
+                bankMSB: UInt8(kAUSampler_DefaultMelodicBankMSB),
+                bankLSB: UInt8(kAUSampler_DefaultBankLSB))
+
+            self.soundbank = soundbank
+            self.program = program
+            self.instrument = "\(soundbank.deletingPathExtension().lastPathComponent):\(program)"
+
+            if wasPlaying {
+                // Loading a new instrument can disable sound, so flip off and on after a short delay
+                DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) { self.lull() }
+            }
+            return true
+        } catch {
+            print("Couldn't load instrument: \(error.localizedDescription)")
+            return false
         }
     }
 
