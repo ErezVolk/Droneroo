@@ -19,7 +19,7 @@ struct DronerooTests {
     @Test func testBSharpWraparound() async throws {
         #expect(parseNote("B♯") == 48)
     }
-    
+
     @Test func testDoubleFlat() async throws {
         #expect(parseNote("D𝄫") == 48)
         #expect(parseNote("E♭♭") == 50)
