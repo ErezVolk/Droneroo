@@ -72,12 +72,12 @@ class DronerooLogic: NSObject, ObservableObject {
 
     func applyVelocity() {
         guard instrument != nil else { return }
-        lull() // Restarting the sound will play with the new velocity
+        blink() // Restarting the sound will play with the new velocity
     }
 
     /// Reset to the default Beep sound
     func resetInstrument() {
-        lull { newSampler() }
+        blink { newSampler() }
     }
 
     /// Recreate sample, resetting to beep
@@ -97,7 +97,7 @@ class DronerooLogic: NSObject, ObservableObject {
 
     /// Load a SoundFont file
     func loadInstrument(_ url: URL? = nil) {
-        lull { wasPlaying in
+        blink {
             if !doLoadInstrument(soundbank: url ?? defaultInstrument, program: 0) {
                 newSampler()
             }
@@ -107,7 +107,7 @@ class DronerooLogic: NSObject, ObservableObject {
     /// Within the current soundbank, try to load the next program
     func nextProgram() {
         guard let soundbank else { return }
-        lull {
+        blink {
             if !doLoadInstrument(soundbank: soundbank, program: program + 1) {
                 if !doLoadInstrument(soundbank: soundbank, program: 0) {
                     newSampler()
@@ -132,7 +132,7 @@ class DronerooLogic: NSObject, ObservableObject {
             self.instrument = "\(soundbank.deletingPathExtension().lastPathComponent):\(program)"
 
             // Loading a new instrument can disable sound, so flip off and on after a short delay
-            DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) { self.lull() }
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) { self.blink() }
             return true
         } catch {
             print("Couldn't load instrument: \(error.localizedDescription)")
@@ -186,7 +186,7 @@ class DronerooLogic: NSObject, ObservableObject {
     /// Update the current note, based on `delta` and `sequenceOrder`
     func changeDrone(_ delta: Int) {
         let mod = noteSequence.count
-        lull {
+        blink {
             currentIndex = (((currentIndex + delta) % mod) + mod) % mod
             setCurrentNote()
         }
@@ -194,8 +194,8 @@ class DronerooLogic: NSObject, ObservableObject {
 
     /// Do `action` while not playing (pause and resume if called while playing)
     /// When `action` is not given, this just makes sure playback stops and starts,
-    /// so changes (e.g., instrument) take effect
-    private func lull(_ action: (_ wasPlaying: Bool) -> Void = {_ in ()}) {
+    /// so audio changes (instrument, velocity, etc.) take effect.
+    private func blink(_ action: (_ wasPlaying: Bool) -> Void = {_ in ()}) {
         let wasPlaying = isPlaying
         if wasPlaying { stopDrone() }
         action(wasPlaying)
@@ -203,16 +203,16 @@ class DronerooLogic: NSObject, ObservableObject {
     }
 
     /// Do `action` while not playing (pause and resume if called while playing)
-    /// A version of `lull()` that doesn't care about `wasPlaying`
-    private func lull(_ action: () -> Void) {
-        lull { _ in
+    /// A version of `blink()` that doesn't care about `wasPlaying`.
+    private func blink(_ action: () -> Void) {
+        blink { _ in
             action()
         }
     }
 
     /// Configure the actual sequence of notes, based on `sequenceType`.
     func loadSequence() {
-        lull {
+        blink {
             currentIndex = 0
             switch sequenceType {
             case .circleOfFourth:
@@ -227,6 +227,7 @@ class DronerooLogic: NSObject, ObservableObject {
         }
     }
 
+    /// Converts a string like "C#" to a MIDI note number in octave 2 (C2...B2)
     static func noteNameToMidiNumber(_ noteName: String) -> UInt8 {
         let match = noteName.firstMatch(of: /([a-gA-G])((𝄫|♭♭|bb)|([b♭])|(𝄪|x|##|♯♯)|([#♯]))?/)!
         let base = Array("CCDDEFFGGAAB").firstIndex(of: match.1.uppercased().first!)!
