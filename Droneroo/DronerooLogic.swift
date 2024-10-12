@@ -98,7 +98,7 @@ class DronerooLogic: NSObject, ObservableObject {
     /// Load a SoundFont file
     func loadInstrument(_ url: URL? = nil) {
         lull { wasPlaying in
-            if !doLoadInstrument(soundbank: url ?? defaultInstrument, program: 0, wasPlaying: wasPlaying) {
+            if !doLoadInstrument(soundbank: url ?? defaultInstrument, program: 0) {
                 newSampler()
             }
         }
@@ -107,9 +107,9 @@ class DronerooLogic: NSObject, ObservableObject {
     /// Within the current soundbank, try to load the next program
     func nextProgram() {
         guard let soundbank else { return }
-        lull { wasPlaying in
-            if !doLoadInstrument(soundbank: soundbank, program: program + 1, wasPlaying: wasPlaying) {
-                if !doLoadInstrument(soundbank: soundbank, program: 0, wasPlaying: wasPlaying) {
+        lull {
+            if !doLoadInstrument(soundbank: soundbank, program: program + 1) {
+                if !doLoadInstrument(soundbank: soundbank, program: 0) {
                     newSampler()
                 }
             }
@@ -119,7 +119,7 @@ class DronerooLogic: NSObject, ObservableObject {
     /// Actually try to load a soundbank instrument (call when not playing)
     /// On success, sets `self.soundbank` etc.
     /// On failure, leaves them untouched (caller deals with it)
-    private func doLoadInstrument(soundbank: URL, program: UInt8, wasPlaying: Bool) -> Bool {
+    private func doLoadInstrument(soundbank: URL, program: UInt8) -> Bool {
         do {
             try sampler.loadSoundBankInstrument(
                 at: soundbank,
@@ -131,10 +131,8 @@ class DronerooLogic: NSObject, ObservableObject {
             self.program = program
             self.instrument = "\(soundbank.deletingPathExtension().lastPathComponent):\(program)"
 
-            if wasPlaying {
-                // Loading a new instrument can disable sound, so flip off and on after a short delay
-                DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) { self.lull() }
-            }
+            // Loading a new instrument can disable sound, so flip off and on after a short delay
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) { self.lull() }
             return true
         } catch {
             print("Couldn't load instrument: \(error.localizedDescription)")
