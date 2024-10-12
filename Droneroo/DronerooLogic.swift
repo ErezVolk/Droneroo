@@ -230,7 +230,7 @@ class DronerooLogic: NSObject, ObservableObject {
     }
 
     static func noteNameToMidiNumber(_ noteName: String) -> UInt8 {
-        let match = noteName.firstMatch(of: /([a-gA-G])((𝄫|♭♭|bb)|([b♭])|([𝄪x])|([#♯]))?/)!
+        let match = noteName.firstMatch(of: /([a-gA-G])((𝄫|♭♭|bb)|([b♭])|(𝄪|x|##|♯♯)|([#♯]))?/)!
         let base = Array("CCDDEFFGGAAB").firstIndex(of: match.1.uppercased().first!)!
         let delta = match.3 != nil ? 10 : match.4 != nil ? 11 : match.5 != nil ? 2 : match.6 != nil ? 1 : 0
         return UInt8(48 + (base + delta) % 12)
