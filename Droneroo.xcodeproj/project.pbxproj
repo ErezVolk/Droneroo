@@ -6,8 +6,19 @@
 	objectVersion = 77;
 	objects = {
 
+/* Begin PBXContainerItemProxy section */
+		BA5624DB2CBA822E00C8AE01 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = BA2E75A42C99BAF8000CDBEE /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = BA2E75AB2C99BAF8000CDBEE;
+			remoteInfo = Droneroo;
+		};
+/* End PBXContainerItemProxy section */
+
 /* Begin PBXFileReference section */
 		BA2E75AC2C99BAF8000CDBEE /* Droneroo.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Droneroo.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		BA5624D72CBA822E00C8AE01 /* DronerooTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = DronerooTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
@@ -29,10 +40,22 @@
 			path = Droneroo;
 			sourceTree = "<group>";
 		};
+		BA5624D82CBA822E00C8AE01 /* DronerooTests */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			path = DronerooTests;
+			sourceTree = "<group>";
+		};
 /* End PBXFileSystemSynchronizedRootGroup section */
 
 /* Begin PBXFrameworksBuildPhase section */
 		BA2E75A92C99BAF8000CDBEE /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		BA5624D42CBA822E00C8AE01 /* Frameworks */ = {
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
@@ -46,6 +69,7 @@
 			isa = PBXGroup;
 			children = (
 				BA2E75AE2C99BAF8000CDBEE /* Droneroo */,
+				BA5624D82CBA822E00C8AE01 /* DronerooTests */,
 				BA2E75AD2C99BAF8000CDBEE /* Products */,
 			);
 			sourceTree = "<group>";
@@ -54,6 +78,7 @@
 			isa = PBXGroup;
 			children = (
 				BA2E75AC2C99BAF8000CDBEE /* Droneroo.app */,
+				BA5624D72CBA822E00C8AE01 /* DronerooTests.xctest */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -83,6 +108,29 @@
 			productReference = BA2E75AC2C99BAF8000CDBEE /* Droneroo.app */;
 			productType = "com.apple.product-type.application";
 		};
+		BA5624D62CBA822E00C8AE01 /* DronerooTests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = BA5624DF2CBA822E00C8AE01 /* Build configuration list for PBXNativeTarget "DronerooTests" */;
+			buildPhases = (
+				BA5624D32CBA822E00C8AE01 /* Sources */,
+				BA5624D42CBA822E00C8AE01 /* Frameworks */,
+				BA5624D52CBA822E00C8AE01 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				BA5624DC2CBA822E00C8AE01 /* PBXTargetDependency */,
+			);
+			fileSystemSynchronizedGroups = (
+				BA5624D82CBA822E00C8AE01 /* DronerooTests */,
+			);
+			name = DronerooTests;
+			packageProductDependencies = (
+			);
+			productName = DronerooTests;
+			productReference = BA5624D72CBA822E00C8AE01 /* DronerooTests.xctest */;
+			productType = "com.apple.product-type.bundle.unit-test";
+		};
 /* End PBXNativeTarget section */
 
 /* Begin PBXProject section */
@@ -95,6 +143,10 @@
 				TargetAttributes = {
 					BA2E75AB2C99BAF8000CDBEE = {
 						CreatedOnToolsVersion = 16.0;
+					};
+					BA5624D62CBA822E00C8AE01 = {
+						CreatedOnToolsVersion = 16.0;
+						TestTargetID = BA2E75AB2C99BAF8000CDBEE;
 					};
 				};
 			};
@@ -113,12 +165,20 @@
 			projectRoot = "";
 			targets = (
 				BA2E75AB2C99BAF8000CDBEE /* Droneroo */,
+				BA5624D62CBA822E00C8AE01 /* DronerooTests */,
 			);
 		};
 /* End PBXProject section */
 
 /* Begin PBXResourcesBuildPhase section */
 		BA2E75AA2C99BAF8000CDBEE /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		BA5624D52CBA822E00C8AE01 /* Resources */ = {
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
@@ -135,7 +195,22 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		BA5624D32CBA822E00C8AE01 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 /* End PBXSourcesBuildPhase section */
+
+/* Begin PBXTargetDependency section */
+		BA5624DC2CBA822E00C8AE01 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = BA2E75AB2C99BAF8000CDBEE /* Droneroo */;
+			targetProxy = BA5624DB2CBA822E00C8AE01 /* PBXContainerItemProxy */;
+		};
+/* End PBXTargetDependency section */
 
 /* Begin XCBuildConfiguration section */
 		BA2E75B82C99BAFB000CDBEE /* Debug */ = {
@@ -333,6 +408,52 @@
 			};
 			name = Release;
 		};
+		BA5624DD2CBA822E00C8AE01 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = 556Z633MCL;
+				GENERATE_INFOPLIST_FILE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 18.0;
+				MACOSX_DEPLOYMENT_TARGET = 15.0;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.erezvolk.DronerooTests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = auto;
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator macosx xros xrsimulator";
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2,7";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/Droneroo.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/Droneroo";
+				XROS_DEPLOYMENT_TARGET = 2.0;
+			};
+			name = Debug;
+		};
+		BA5624DE2CBA822E00C8AE01 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = 556Z633MCL;
+				GENERATE_INFOPLIST_FILE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 18.0;
+				MACOSX_DEPLOYMENT_TARGET = 15.0;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.erezvolk.DronerooTests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = auto;
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator macosx xros xrsimulator";
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2,7";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/Droneroo.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/Droneroo";
+				XROS_DEPLOYMENT_TARGET = 2.0;
+			};
+			name = Release;
+		};
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
@@ -350,6 +471,15 @@
 			buildConfigurations = (
 				BA2E75BB2C99BAFB000CDBEE /* Debug */,
 				BA2E75BC2C99BAFB000CDBEE /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		BA5624DF2CBA822E00C8AE01 /* Build configuration list for PBXNativeTarget "DronerooTests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				BA5624DD2CBA822E00C8AE01 /* Debug */,
+				BA5624DE2CBA822E00C8AE01 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;

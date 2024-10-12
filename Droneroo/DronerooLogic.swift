@@ -22,8 +22,6 @@ class DronerooLogic: NSObject, ObservableObject {
     @Published var isPlaying = false
     @Published var isReversed = false
     @Published var sequenceType: SequenceType = .circleOfFourth
-    private let sharps = ["C", "C♯", "D", "D♯", "E", "F", "F♯", "G", "G♯", "A", "A♯", "B"]
-    private let flats = ["C", "D♭", "D", "E♭", "E", "F", "G♭", "G", "A♭", "A", "B♭", "B"]
     private let audioEngine = AVAudioEngine()
     private var sampler = AVAudioUnitSampler()
     private var noteSequence: [UInt8] = []
@@ -199,14 +197,15 @@ class DronerooLogic: NSObject, ObservableObject {
             case .chromatic:
                 nameSequence = ["C", "C♯/D♭", "D", "D♯/E♭", "E", "F", "F♯/G♭", "G", "G♯/A♭", "A", "A♯/B♭", "B"]
             }
-            noteSequence = nameSequence.map { noteNameToMidiNumber($0) }
+            noteSequence = nameSequence.map { DronerooLogic.noteNameToMidiNumber($0) }
             setCurrentNote()
         }
     }
 
-    private func noteNameToMidiNumber(_ noteName: String) -> UInt8 {
-        let note = String(noteName.prefix(2))
-        let idx = sharps.firstIndex(of: note) ?? flats.firstIndex(of: note) ?? 0
-        return UInt8(48 + idx)
+    static func noteNameToMidiNumber(_ noteName: String) -> UInt8 {
+        let match = noteName.firstMatch(of: /([a-gA-G])((𝄫|♭♭|bb)|([b♭])|([𝄪x])|([#♯]))?/)!
+        let base = Array("CCDDEFFGGAAB").firstIndex(of: match.1.uppercased().first!)!
+        let delta = match.3 != nil ? 10 : match.4 != nil ? 11 : match.5 != nil ? 2 : match.6 != nil ? 1 : 0
+        return UInt8(48 + (base + delta) % 12)
     }
 }
