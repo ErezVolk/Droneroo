@@ -39,7 +39,7 @@ struct DronerooView: View {
 
             VStack(spacing: 20) {
                 HStack {
-                    prevNextButton(text: logic.previousNoteName, cond: direction < 0)
+                    leftButton
                         .onTapGesture { toChangeNote -= 1 }
 
                     middleButton
@@ -48,7 +48,7 @@ struct DronerooView: View {
                         .handleKey(.space) { toToggleDrone.toggle() }
                         .onTapGesture { toToggleDrone.toggle() }
 
-                    prevNextButton(text: logic.nextNoteName, cond: direction > 0)
+                    rightButton
                         .onTapGesture { toChangeNote += 1 }
                 }
 
@@ -93,6 +93,14 @@ struct DronerooView: View {
                 offBackColor: .drGrey7
             ))
     }
+    
+    var leftButton: some View {
+        prevNextButton(text: logic.previousNoteName, cond: direction < 0)
+    }
+    
+    var rightButton: some View {
+        prevNextButton(text: logic.nextNoteName, cond: direction > 0)
+    }
 
     /// The "previous/next tone" circles
     func prevNextButton(text: String, cond: Bool) -> some View {
@@ -127,6 +135,7 @@ struct DronerooView: View {
             .labelStyle(.iconOnly)
             .fixedSize()
             .disabled(logic.instrument == nil)
+            .foregroundStyle(logic.instrument == nil ? Color.gray : Color.primary)
         }
     }
 
