@@ -151,13 +151,13 @@ struct DronerooView: View {
 
     var volumeSlider: some View {
         slider(value: $logic.volume, low: "speaker", high: "speaker.wave.3", help: "Volume")
-            .addToTour(tour, "volume", "Volume")
+            .addToTour(audioTour, "volume", "Volume")
     }
 
     var velocitySlider: some View {
         slider(value: $logic.velocity, low: "dial.low", high: "dial.high", help: "MIDI Velocity")
             .disabled(logic.instrument == nil)
-            .addToTour(tour, "velocity", "MIDI velocity")
+            .addToTour(audioTour, "velocity", "MIDI velocity")
     }
 
     var stringsButton: some View {
@@ -253,7 +253,7 @@ struct DronerooView: View {
                 logic.loadInstrument(url)
             }
         }
-        .addToTour(tour, "soundbank", "Choose a soundbank file")
+        .addToTour(audioTour, "soundbank", "Choose a soundbank file")
     }
 
     var instrumentPanel: some View {
@@ -312,7 +312,7 @@ struct DronerooView: View {
         .sheet(isPresented: $isSoundbankPickerPresented) {
             FilePickerIOS(fileURL: $soundbankUrl, types: soundbankTypes)
         }
-        .addToTour(tour, "soundbank", "Choose a soundbank file")
+        .addToTour(audioTour, "soundbank", "Choose a soundbank file")
         .onChange(of: isSoundbankPickerPresented) {
             if !isSoundbankPickerPresented {
                 if let url = soundbankUrl {
