@@ -217,7 +217,7 @@ struct DronerooView: View {
             HStack() {
                 tourButton.hidden()
                 Spacer()
-                Label(getWhoAmI(), systemImage: "")
+                Link(getWhoAmI(), destination: URL(string: "https://github.com/ErezVolk/Droneroo")!)
                     .font(.caption)
                     .opacity(0.7)
                 Spacer()
