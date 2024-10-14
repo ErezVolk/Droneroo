@@ -74,9 +74,9 @@ extension View {
     /// Add a popover to this `View` and register to the tour
     func addToTour(_ tour: Tour, _ key: String, _ text: String) -> some View {
         return popover(isPresented: tour.get(key)) {
-            Label(text, systemImage: "info.circle")
+            Text(text)
                 .padding()
-                .presentationCompactAdaptation(.none)
+                .presentationCompactAdaptation(.popover)
                 .onTapGesture { tour.next() }
         }
     }

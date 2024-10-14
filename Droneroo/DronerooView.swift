@@ -31,7 +31,10 @@ struct DronerooView: View {
     // Since calling `audioManager` from `.onTap` issues errors, save them aside
     @State private var toToggleDrone = false
     private let soundbankTypes = [UTType(filenameExtension: "sf2")!, UTType(filenameExtension: "dfs")!]
-    var tour = Tour(["middle", "right", "sequence", "signpost"])
+    let MAIN_TOUR = ["middle", "right", "sequence", "signpost"]
+    let AUDIO_TOUR = ["soundbank", "strings", "beep", "instrument", "program", "volume", "velocity"]
+    var tour: Tour
+    var audioTour: Tour
 
     var body: some View {
         ZStack {
@@ -133,6 +136,7 @@ struct DronerooView: View {
         HStack {
             Text(logic.instrument ?? "None")
                 .font(.callout.monospaced())
+                .addToTour(audioTour, "instrument", "Loaded instrument")
 
             Button("Next Program", systemImage: "waveform") {
                 logic.nextProgram()
@@ -141,28 +145,33 @@ struct DronerooView: View {
             .fixedSize()
             .disabled(logic.instrument == nil)
             .foregroundStyle(logic.instrument == nil ? Color.gray : Color.primary)
+            .addToTour(audioTour, "program", "Next program within soundbank")
         }
     }
 
     var volumeSlider: some View {
         slider(value: $logic.volume, low: "speaker", high: "speaker.wave.3", help: "Volume")
+            .addToTour(tour, "volume", "Volume")
     }
 
     var velocitySlider: some View {
         slider(value: $logic.velocity, low: "dial.low", high: "dial.high", help: "MIDI Velocity")
             .disabled(logic.instrument == nil)
+            .addToTour(tour, "velocity", "MIDI velocity")
     }
 
     var stringsButton: some View {
         Button(Instrument.strings.rawValue) {
             logic.loadInstrument()
         }
+        .addToTour(audioTour, "strings", "Bundled sound")
     }
 
     var beepButton: some View {
         Button(Instrument.beep.rawValue) {
             logic.resetInstrument()
         }
+        .addToTour(audioTour, "beep", "Use default beep sound")
     }
 
     var tourButton: some View {
@@ -221,6 +230,11 @@ struct DronerooView: View {
 #if os(macOS)
     private let sequencePickerStyle = SegmentedPickerStyle()
     private let sequencePickerTint = Color.drGrey8
+    
+    init() {
+        tour = Tour(MAIN_TOUR + AUDIO_TOUR)
+        audioTour = tour
+    }
 
     func pickSoundFont() -> URL? {
         let panel = NSOpenPanel()
@@ -239,6 +253,7 @@ struct DronerooView: View {
                 logic.loadInstrument(url)
             }
         }
+        .addToTour(tour, "soundbank", "Choose a soundbank file")
     }
 
     var instrumentPanel: some View {
@@ -259,12 +274,18 @@ struct DronerooView: View {
     @State private var isAudioSheetPresented = false
     private let sequencePickerStyle = DefaultPickerStyle()
     private let sequencePickerTint = Color.drGreen2
+    
+    init() {
+        tour = Tour(MAIN_TOUR + ["audio"])
+        audioTour = Tour(AUDIO_TOUR)
+    }
 
     var instrumentPanel: some View {
         Button("Audio", systemImage: "gearshape") {
             isAudioSheetPresented = true
         }
         .foregroundStyle(Color.drGrey2)
+        .addToTour(tour, "audio", "Audio options")
         .sheet(isPresented: $isAudioSheetPresented) {
             VStack(spacing: 20) {
                 HStack {
@@ -291,6 +312,7 @@ struct DronerooView: View {
         .sheet(isPresented: $isSoundbankPickerPresented) {
             FilePickerIOS(fileURL: $soundbankUrl, types: soundbankTypes)
         }
+        .addToTour(tour, "soundbank", "Choose a soundbank file")
         .onChange(of: isSoundbankPickerPresented) {
             if !isSoundbankPickerPresented {
                 if let url = soundbankUrl {
