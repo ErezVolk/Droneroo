@@ -79,5 +79,6 @@ extension View {
                 .presentationCompactAdaptation(.popover)
                 .onTapGesture { tour.next() }
         }
+        .presentationCompactAdaptation(.popover)
     }
 }
