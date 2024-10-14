@@ -32,7 +32,8 @@ struct DronerooView: View {
     @State private var toToggleDrone = false
     private let soundbankTypes = [UTType(filenameExtension: "sf2")!, UTType(filenameExtension: "dfs")!]
     let MAIN_TOUR = ["middle", "right", "sequence", "signpost"]
-    let AUDIO_TOUR = ["soundbank", "strings", "beep", "instrument", "program", "volume", "velocity"]
+    let AUDIO_TOUR = ["soundbank", "program", "velocity"]
+    let SOUNDBANK_TOUR = "Choose a soundbank file."
     var tour: Tour
     var audioTour: Tour
 
@@ -63,7 +64,7 @@ struct DronerooView: View {
                     sequencePicker
                         .addToTour(tour, "sequence", "Sequence of drone notes.")
                     signpost
-                        .addToTour(tour, "signpost", "Direction for 'next' (using foot pedal or ▶)")
+                        .addToTour(tour, "signpost", "Direction for 'next'\n(using foot pedal or ▶)")
                 }
 
                 instrumentPanel
@@ -136,7 +137,6 @@ struct DronerooView: View {
         HStack {
             Text(logic.instrument ?? "None")
                 .font(.callout.monospaced())
-                .addToTour(audioTour, "instrument", "Loaded instrument")
 
             Button("Next Program", systemImage: "waveform") {
                 logic.nextProgram()
@@ -151,7 +151,6 @@ struct DronerooView: View {
 
     var volumeSlider: some View {
         slider(value: $logic.volume, low: "speaker", high: "speaker.wave.3", help: "Volume")
-            .addToTour(audioTour, "volume", "Volume")
     }
 
     var velocitySlider: some View {
@@ -164,28 +163,30 @@ struct DronerooView: View {
         Button(Instrument.strings.rawValue) {
             logic.loadInstrument()
         }
-        .addToTour(audioTour, "strings", "Bundled sound")
     }
 
     var beepButton: some View {
         Button(Instrument.beep.rawValue) {
             logic.resetInstrument()
         }
-        .addToTour(audioTour, "beep", "Use default beep sound")
     }
 
     var tourButton: some View {
-        Button("Tour", systemImage: tour.inProgress ? "xmark.circle" : "questionmark.circle") { tour.toggle() }
+        Button("", systemImage: tour.inProgress ? "xmark.circle" : "questionmark.circle") { tour.toggle() }
         .fixedSize()
     }
 
     /// Slider with label showing (on iOS it doesn't)
     func slider(value: Binding<Double>, low: String, high: String, help: String) -> some View {
         return HStack {
-            Label("", systemImage: low).foregroundStyle(Color(.drGreen2))
+            sliderLabel("Minimum \(help)", systemImage: low)
             Slider(value: value, in: 0...1) { EmptyView() }
-            Label("", systemImage: high).foregroundStyle(Color(.drGreen2))
+            sliderLabel("Maximum \(help)", systemImage: low)
         }.padding(.horizontal)
+    }
+    
+    func sliderLabel(_ text: String, systemImage: String) -> some View {
+        Label(text, systemImage: systemImage).labelStyle(.iconOnly)//.foregroundStyle(Color(.drGreen2))
     }
 
     /// The "which way" button
@@ -253,7 +254,7 @@ struct DronerooView: View {
                 logic.loadInstrument(url)
             }
         }
-        .addToTour(audioTour, "soundbank", "Choose a soundbank file")
+        .addToTour(audioTour, "soundbank", SOUNDBANK_TOUR)
     }
 
     var instrumentPanel: some View {
@@ -325,7 +326,7 @@ struct DronerooView: View {
         .sheet(isPresented: $isSoundbankPickerPresented) {
             FilePickerIOS(fileURL: $soundbankUrl, types: soundbankTypes)
         }
-        .addToTour(audioTour, "soundbank", "Choose a soundbank file")
+        .addToTour(audioTour, "soundbank", SOUNDBANK_TOUR)
         .onChange(of: isSoundbankPickerPresented) {
             if !isSoundbankPickerPresented {
                 if let url = soundbankUrl {
@@ -336,7 +337,10 @@ struct DronerooView: View {
     }
 
     var audioTourButton: some View {
-        Button("", systemImage: audioTour.inProgress ? "xmark.circle" : "questionmark.circle") { audioTour.toggle() }
+        Button("Tour", systemImage: audioTour.inProgress ? "xmark.circle" : "questionmark.circle") {
+            audioTour.toggle()
+        }
+        .labelStyle(.iconOnly)
         .fixedSize()
     }
 #endif
