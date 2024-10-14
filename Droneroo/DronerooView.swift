@@ -31,6 +31,7 @@ struct DronerooView: View {
     // Since calling `audioManager` from `.onTap` issues errors, save them aside
     @State private var toToggleDrone = false
     private let soundbankTypes = [UTType(filenameExtension: "sf2")!, UTType(filenameExtension: "dfs")!]
+    var tour = Tour(["middle", "right", "sequence", "signpost"])
 
     var body: some View {
         ZStack {
@@ -47,15 +48,19 @@ struct DronerooView: View {
                         .handleKey(.rightArrow) { toChangeNote += direction }
                         .handleKey(.space) { toToggleDrone.toggle() }
                         .onTapGesture { toToggleDrone.toggle() }
+                        .addToTour(tour, "middle", "Current note.\nTap to start/stop drone.")
 
                     rightButton
                         .onTapGesture { toChangeNote += 1 }
+                        .addToTour(tour, "right", "Next note.\nTap to change to this note.")
                 }
 
                 HStack {
                     signpost.hidden()  // Hack for centering
                     sequencePicker
+                        .addToTour(tour, "sequence", "Sequence of drone notes.")
                     signpost
+                        .addToTour(tour, "signpost", "Direction for 'next' (using foot pedal or ▶)")
                 }
 
                 instrumentPanel
@@ -160,6 +165,11 @@ struct DronerooView: View {
         }
     }
 
+    var tourButton: some View {
+        Button("Tour", systemImage: tour.inProgress ? "xmark.circle" : "questionmark.circle") { tour.toggle() }
+        .fixedSize()
+    }
+
     /// Slider with label showing (on iOS it doesn't)
     func slider(value: Binding<Double>, low: String, high: String, help: String) -> some View {
         return HStack {
@@ -195,11 +205,17 @@ struct DronerooView: View {
     var identityOverlay: some View {
         VStack {
             Spacer()
-            Label(getWhoAmI(), systemImage: "")
-                .font(.caption)
+            HStack() {
+                tourButton.hidden()
+                Spacer()
+                Label(getWhoAmI(), systemImage: "")
+                    .font(.caption)
+                    .opacity(0.7)
+                Spacer()
+                tourButton
+            }
         }
         .padding()
-        .opacity(0.7)
     }
 
 #if os(macOS)
