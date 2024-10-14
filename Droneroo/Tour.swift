@@ -76,9 +76,9 @@ extension View {
         return popover(isPresented: tour.get(key)) {
             Text(text)
                 .padding()
-                .presentationCompactAdaptation(.popover)
+                .presentationCompactAdaptation(.popover) // Needed for the first popover on iOS
                 .onTapGesture { tour.next() }
         }
-        .presentationCompactAdaptation(.popover)
+        .presentationCompactAdaptation(.popover) // Needed for the non-first popover on iOS
     }
 }
