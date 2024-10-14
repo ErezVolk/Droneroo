@@ -76,6 +76,7 @@ extension View {
         return popover(isPresented: tour.get(key)) {
             Text(text)
                 .padding()
+                .presentationBackground(.thinMaterial)
                 .presentationCompactAdaptation(.popover) // Needed for the first popover on iOS
                 .onTapGesture { tour.next() }
         }

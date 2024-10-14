@@ -287,18 +287,31 @@ struct DronerooView: View {
         .foregroundStyle(Color.drGrey2)
         .addToTour(tour, "audio", "Audio options")
         .sheet(isPresented: $isAudioSheetPresented) {
-            VStack(spacing: 20) {
-                HStack {
-                    soundbankButton
-                    stringsButton
-                    beepButton
+            ZStack {
+                VStack(spacing: 20) {
+                    HStack {
+                        soundbankButton
+                        stringsButton
+                        beepButton
+                    }
+                    .buttonStyle(.bordered)
+                    instrumentView
+                    volumeSlider
+                    velocitySlider
                 }
-                .buttonStyle(.bordered)
-                instrumentView
-                volumeSlider
-                velocitySlider
-                Button("Close", systemImage: "xmark.circle") {
-                    isAudioSheetPresented = false
+                
+                VStack {
+                    Spacer()
+                    HStack {
+                        audioTourButton.hidden()
+                        Spacer()
+                        Button("Close", systemImage: "xmark.circle") {
+                            isAudioSheetPresented = false
+                        }
+                        Spacer()
+                        audioTourButton
+                    }
+                    .padding()
                 }
             }
         }
@@ -320,6 +333,11 @@ struct DronerooView: View {
                 }
             }
         }
+    }
+
+    var audioTourButton: some View {
+        Button("", systemImage: audioTour.inProgress ? "xmark.circle" : "questionmark.circle") { audioTour.toggle() }
+        .fixedSize()
     }
 #endif
 }
