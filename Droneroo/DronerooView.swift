@@ -23,7 +23,7 @@ extension View {
 struct DronerooView: View {
     @StateObject private var logic = DronerooLogic()
     @State private var selectedSequence: SequenceType = .circleOfFourth
-    @FocusState private var focused: Bool
+    @FocusState private var haveKeyboardFocus: Bool
     /// How much to add to the current note index when the right arrow key is pressed ("forward")
     @State private var direction = 1
     // Since calling `audioManager` from `.onKeyPress` issues errors, save them aside
@@ -72,7 +72,7 @@ struct DronerooView: View {
             }
             .padding()
             .onAppear {
-                logic.loadSequence()
+                loadSequence()
             }
             .onChange(of: toToggleDrone) {
                 if toToggleDrone { logic.toggleDrone() }
@@ -83,18 +83,22 @@ struct DronerooView: View {
                 toChangeNote = 0
             }
             .onChange(of: selectedSequence) {
-                logic.sequenceType = selectedSequence
-                logic.loadSequence()
+                loadSequence()
             }
         }
+    }
+
+    private func loadSequence() {
+        logic.sequenceType = selectedSequence
+        logic.loadSequence()
     }
 
     /// The "current tone" circle and keyboard event receiver
     var middleButton: some View {
         Toggle(logic.currentNoteName, isOn: $logic.isPlaying)
             .focusable()
-            .focused($focused)
-            .onAppear { focused = true }
+            .focused($haveKeyboardFocus)
+            .onAppear { haveKeyboardFocus = true }
             .toggleStyle(EncircledToggleStyle(
                 onTextColor: .drGreen4,
                 onBackColor: .drGrey8,
