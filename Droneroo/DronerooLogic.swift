@@ -16,12 +16,11 @@ class DronerooLogic: NSObject, ObservableObject {
     @Published var currentNoteName: String = "None"
     @Published var previousNoteName: String = "N/A"
     @Published var nextNoteName: String = "N/A"
-    @Published var volume: Double = 1.0
-    @Published var velocity: Double = 0.8
     @Published var instrument: String?
     @Published var isPlaying = false
     @Published var isReversed = false
     @Published var sequenceType: SequenceType = .circleOfFourth
+    private var velocity: Double = 0.8
     private let audioEngine = AVAudioEngine()
     private var sampler = AVAudioUnitSampler()
     private var soundbank: URL?
@@ -44,10 +43,6 @@ class DronerooLogic: NSObject, ObservableObject {
 
     private func setupAudioEngine() {
         connectSampler()
-        applyVolume()
-
-        listen(to: $volume) { self.applyVolume() }
-        listen(to: $velocity) { self.applyVelocity() }
 
         do {
             try audioEngine.start()
@@ -66,13 +61,13 @@ class DronerooLogic: NSObject, ObservableObject {
             .store(in: &cancellables)
     }
 
-    func applyVolume() {
+    func setVolume(_ volume: Double) {
         audioEngine.mainMixerNode.outputVolume = Float(volume)
     }
 
-    func applyVelocity() {
+    func setVelocity(_ velocity: Double) {
         guard instrument != nil else { return }
-        blink() // Restarting the sound will play with the new velocity
+        blink { self.velocity = velocity }
     }
 
     /// Reset to the default Beep sound
@@ -96,9 +91,9 @@ class DronerooLogic: NSObject, ObservableObject {
     }
 
     /// Load a SoundFont file
-    func loadInstrument(_ url: URL? = nil) {
+    func loadInstrument(_ url: URL? = nil, program: UInt8 = 0) {
         blink {
-            if !doLoadInstrument(soundbank: url ?? defaultInstrument, program: 0) {
+            if !doLoadInstrument(soundbank: url ?? defaultInstrument, program: program) {
                 newSampler()
             }
         }

@@ -25,6 +25,8 @@ struct DronerooView: View {
     @AppStorage("sequence") private var selectedSequence: SequenceType = .circleOfFourth
     /// How much to add to the current note index when the right arrow key is pressed ("forward")
     @AppStorage("direction") private var direction = 1
+    @AppStorage("volume") var volume: Double = 1.0
+    @AppStorage("velocity") var velocity: Double = 0.8
     // Since calling `audioManager` from `.onKeyPress` issues errors, save them aside
     @State private var toChangeNote = 0
     // Since calling `audioManager` from `.onTap` issues errors, save them aside
@@ -154,11 +156,11 @@ struct DronerooView: View {
     }
 
     var volumeSlider: some View {
-        slider(value: $logic.volume, low: "speaker", high: "speaker.wave.3", help: "Volume")
+        slider(value: $volume, low: "speaker", high: "speaker.wave.3", help: "Volume", propagate: { logic.setVolume(volume) })
     }
 
     var velocitySlider: some View {
-        slider(value: $logic.velocity, low: "dial.low", high: "dial.high", help: "MIDI Velocity")
+        slider(value: $velocity, low: "dial.low", high: "dial.high", help: "MIDI Velocity", propagate: { logic.setVelocity(velocity) })
             .disabled(logic.instrument == nil)
             .addToTour(audioTour, "velocity", "MIDI velocity")
     }
@@ -181,12 +183,20 @@ struct DronerooView: View {
     }
 
     /// Slider with label showing (on iOS it doesn't)
-    func slider(value: Binding<Double>, low: String, high: String, help: String) -> some View {
+    func slider(value: Binding<Double>, low: String, high: String, help: String, propagate: @escaping () -> Void) -> some View {
         return HStack {
             sliderLabel("Minimum \(help)", systemImage: low)
-            Slider(value: value, in: 0...1) { EmptyView() }
+            Slider(value: value, in: 0...1) {
+                EmptyView()
+            } onEditingChanged: { isEditing in
+                if !isEditing {
+                    propagate()
+                }
+            }
             sliderLabel("Maximum \(help)", systemImage: low)
-        }.padding(.horizontal)
+        }
+        .padding(.horizontal)
+        .onAppear() { propagate() }
     }
     
     func sliderLabel(_ text: String, systemImage: String) -> some View {

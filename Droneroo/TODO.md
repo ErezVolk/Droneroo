@@ -1,7 +1,7 @@
 #  TODO List
 
-- Fix "A sheet presentation cannot adapt into a popover presentation. Do you have a `.presentationCompactAdaptation(.popover)` modifier inside a `.sheet(…)` presentation?"
 - Must save state
+  - Add a "reset all to defaults"
 - Different layout for iPhone/iPad https://stackoverflow.com/questions/68414871
 - Different color scheme for desktop, at the very least something more somber and less pastel
   - Lookup "different color schemes on iOS/Mac"
