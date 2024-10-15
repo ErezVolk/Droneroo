@@ -22,20 +22,20 @@ extension View {
 
 struct DronerooView: View {
     @StateObject private var logic = DronerooLogic()
-    @State private var selectedSequence: SequenceType = .circleOfFourth
-    @FocusState private var haveKeyboardFocus: Bool
+    @AppStorage("sequence") private var selectedSequence: SequenceType = .circleOfFourth
     /// How much to add to the current note index when the right arrow key is pressed ("forward")
-    @State private var direction = 1
+    @AppStorage("direction") private var direction = 1
     // Since calling `audioManager` from `.onKeyPress` issues errors, save them aside
     @State private var toChangeNote = 0
     // Since calling `audioManager` from `.onTap` issues errors, save them aside
     @State private var toToggleDrone = false
+    @FocusState private var haveKeyboardFocus: Bool
     private let soundbankTypes = [UTType(filenameExtension: "sf2")!, UTType(filenameExtension: "dfs")!]
-    let MAIN_TOUR = ["middle", "right", "sequence", "signpost"]
-    let AUDIO_TOUR = ["soundbank", "program", "velocity"]
-    let SOUNDBANK_TOUR = "Choose a soundbank file."
-    var tour: Tour
-    var audioTour: Tour
+    private let MAIN_TOUR = ["middle", "right", "sequence", "signpost"]
+    private let AUDIO_TOUR = ["soundbank", "program", "velocity"]
+    private let SOUNDBANK_TOUR_TEXT = "Choose a soundbank file."
+    private var tour: Tour
+    private var audioTour: Tour
 
     var body: some View {
         ZStack {
@@ -258,7 +258,7 @@ struct DronerooView: View {
                 logic.loadInstrument(url)
             }
         }
-        .addToTour(audioTour, "soundbank", SOUNDBANK_TOUR)
+        .addToTour(audioTour, "soundbank", SOUNDBANK_TOUR_TEXT)
     }
 
     var instrumentPanel: some View {
@@ -330,7 +330,7 @@ struct DronerooView: View {
         .sheet(isPresented: $isSoundbankPickerPresented) {
             FilePickerIOS(fileURL: $soundbankUrl, types: soundbankTypes)
         }
-        .addToTour(audioTour, "soundbank", SOUNDBANK_TOUR)
+        .addToTour(audioTour, "soundbank", SOUNDBANK_TOUR_TEXT)
         .onChange(of: isSoundbankPickerPresented) {
             if !isSoundbankPickerPresented {
                 if let url = soundbankUrl {
