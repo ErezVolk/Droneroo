@@ -167,7 +167,7 @@ struct DronerooView: View {
 
     var stringsButton: some View {
         Button(Instrument.strings.rawValue) {
-            logic.loadInstrument()
+            logic.loadBundledInstrument()
         }
     }
 

@@ -31,7 +31,7 @@ class DronerooLogic: NSObject, ObservableObject {
     private var currentNote: UInt8!
     private var cancellables = Set<AnyCancellable>()
     // From http://johannes.roussel.free.fr/music/soundfonts.htm
-    private let defaultInstrument = Bundle.main.url(forResource: "JR_String2", withExtension: "sf2")!
+    private let bundledInstrument = Bundle.main.url(forResource: "JR_String2", withExtension: "sf2")!
     private let caffeine = Caffeine()
 
     override init() {
@@ -89,11 +89,16 @@ class DronerooLogic: NSObject, ObservableObject {
         audioEngine.attach(sampler)
         audioEngine.connect(sampler, to: audioEngine.mainMixerNode, format: nil)
     }
+    
+    /// Load the bundled instrument
+    func loadBundledInstrument() {
+        loadInstrument(bundledInstrument)
+    }
 
-    /// Load a SoundFont file
-    func loadInstrument(_ url: URL? = nil, program: UInt8 = 0) {
+    /// Load instrument from a soundbank
+    func loadInstrument(_ url: URL, program: UInt8 = 0) {
         blink {
-            if !doLoadInstrument(soundbank: url ?? defaultInstrument, program: program) {
+            if !doLoadInstrument(soundbank: url, program: program) {
                 newSampler()
             }
         }
