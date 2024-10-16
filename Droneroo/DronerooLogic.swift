@@ -12,11 +12,16 @@ enum SequenceType: String, CaseIterable, Identifiable {
     var id: String { self.rawValue }
 }
 
+/// Identifier for a sound sample in a soundbank
+struct Sounder {
+    let soundbank: URL
+    let program: Int
+}
+
 class DronerooLogic: NSObject, ObservableObject {
     @Published var currentNoteName: String = "None"
     @Published var previousNoteName: String = "N/A"
     @Published var nextNoteName: String = "N/A"
-    @Published var instrument: String?
     @Published var isPlaying = false
     @Published var isReversed = false
     @Published var sequenceType: SequenceType = .circleOfFourth
@@ -66,23 +71,23 @@ class DronerooLogic: NSObject, ObservableObject {
     }
 
     func setVelocity(_ velocity: Double) {
-        guard instrument != nil else { return }
         blink { self.velocity = velocity }
     }
 
     /// Reset to the default Beep sound
     func resetInstrument() {
-        blink { newSampler() }
+        blink { _ = newSampler() }
     }
 
     /// Recreate sample, resetting to beep
-    private func newSampler() {
+    private func newSampler() -> Sounder? {
         assert(!isPlaying)
         audioEngine.detach(sampler)
         sampler = AVAudioUnitSampler()
-        instrument = nil
         soundbank = nil
+        program = 0
         connectSampler()
+        return nil
     }
 
     private func connectSampler() {
@@ -91,35 +96,33 @@ class DronerooLogic: NSObject, ObservableObject {
     }
     
     /// Load the bundled instrument
-    func loadBundledInstrument() {
-        loadInstrument(bundledInstrument)
+    func loadBundledInstrument() -> Sounder? {
+        return loadInstrument(bundledInstrument)
     }
 
     /// Load instrument from a soundbank
-    func loadInstrument(_ url: URL, program: UInt8 = 0) {
+    func loadInstrument(_ url: URL, program: UInt8 = 0) -> Sounder? {
+        var sounder: Sounder? = nil
         blink {
-            if !doLoadInstrument(soundbank: url, program: program) {
-                newSampler()
-            }
+            sounder = doLoadInstrument(soundbank: url, program: program) ?? newSampler()
         }
+        return sounder
     }
 
     /// Within the current soundbank, try to load the next program
-    func nextProgram() {
-        guard let soundbank else { return }
+    func nextProgram() -> Sounder? {
+        guard let soundbank else { return nil }
+        var sounder: Sounder? = nil
         blink {
-            if !doLoadInstrument(soundbank: soundbank, program: program + 1) {
-                if !doLoadInstrument(soundbank: soundbank, program: 0) {
-                    newSampler()
-                }
-            }
+            sounder = doLoadInstrument(soundbank: soundbank, program: program + 1) ?? doLoadInstrument(soundbank: soundbank, program: 0) ?? newSampler()
         }
+        return sounder
     }
 
     /// Actually try to load a soundbank instrument (call when not playing)
     /// On success, sets `self.soundbank` etc.
     /// On failure, leaves them untouched (caller deals with it)
-    private func doLoadInstrument(soundbank: URL, program: UInt8) -> Bool {
+    private func doLoadInstrument(soundbank: URL, program: UInt8) -> Sounder? {
         do {
             try sampler.loadSoundBankInstrument(
                 at: soundbank,
@@ -129,14 +132,13 @@ class DronerooLogic: NSObject, ObservableObject {
 
             self.soundbank = soundbank
             self.program = program
-            self.instrument = "\(soundbank.deletingPathExtension().lastPathComponent):\(program)"
-
+            
             // Loading a new instrument can disable sound, so flip off and on after a short delay
             DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) { self.blink() }
-            return true
+            return Sounder(soundbank: soundbank, program: Int(program))
         } catch {
             print("Couldn't load instrument: \(error.localizedDescription)")
-            return false
+            return nil
         }
     }
 

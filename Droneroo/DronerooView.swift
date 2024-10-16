@@ -27,11 +27,14 @@ struct DronerooView: View {
     @AppStorage("direction") private var direction = 1
     @AppStorage("volume") var volume: Double = 1.0
     @AppStorage("velocity") var velocity: Double = 0.8
-    // Since calling `audioManager` from `.onKeyPress` issues errors, save them aside
+
+    // Since calling `audioManager` from `.onKeyPress`/`.onTap` issues errors, save them aside
     @State private var toChangeNote = 0
-    // Since calling `audioManager` from `.onTap` issues errors, save them aside
     @State private var toToggleDrone = false
+    
     @FocusState private var haveKeyboardFocus: Bool
+    @State private var soundbank: URL? = nil
+    @State private var program: Int = 0
     private let soundbankTypes = [UTType(filenameExtension: "sf2")!, UTType(filenameExtension: "dfs")!]
     private let MAIN_TOUR = ["middle", "right", "sequence", "signpost"]
     private let AUDIO_TOUR = ["soundbank", "program", "velocity"]
@@ -141,17 +144,27 @@ struct DronerooView: View {
 
     var instrumentView: some View {
         HStack {
-            Text(logic.instrument ?? "None")
+            Text(soundbank == nil ? "None": "\(soundbank!.deletingPathExtension().lastPathComponent):\(program)")
                 .font(.callout.monospaced())
 
             Button("Next Program", systemImage: "waveform") {
-                logic.nextProgram()
+                self.updateSounder(logic.nextProgram())
             }
             .labelStyle(.iconOnly)
             .fixedSize()
-            .disabled(logic.instrument == nil)
-            .foregroundStyle(logic.instrument == nil ? Color.gray : Color.primary)
+            .disabled(soundbank == nil)
+            .foregroundStyle(soundbank == nil ? Color.gray : Color.primary)
             .addToTour(audioTour, "program", "Next program within soundbank")
+        }
+    }
+    
+    func updateSounder(_ sounder: Sounder?) {
+        if let sounder {
+            soundbank = sounder.soundbank
+            program = sounder.program
+        } else {
+            soundbank = nil
+            program = 0
         }
     }
 
@@ -161,13 +174,13 @@ struct DronerooView: View {
 
     var velocitySlider: some View {
         slider(value: $velocity, low: "dial.low", high: "dial.high", help: "MIDI Velocity", propagate: { logic.setVelocity(velocity) })
-            .disabled(logic.instrument == nil)
+            .disabled(soundbank == nil)
             .addToTour(audioTour, "velocity", "MIDI velocity")
     }
 
     var stringsButton: some View {
         Button(Instrument.strings.rawValue) {
-            logic.loadBundledInstrument()
+            updateSounder(logic.loadBundledInstrument())
         }
     }
 
@@ -268,7 +281,7 @@ struct DronerooView: View {
     var soundbankButton: some View {
         Button("Load Soundbank...") {
             if let url = pickSoundFont() {
-                logic.loadInstrument(url)
+                updateSounder(logic.loadInstrument(url))
             }
         }
         .addToTour(audioTour, "soundbank", SOUNDBANK_TOUR_TEXT)
@@ -347,7 +360,7 @@ struct DronerooView: View {
         .onChange(of: isSoundbankPickerPresented) {
             if !isSoundbankPickerPresented {
                 if let url = soundbankUrl {
-                    logic.loadInstrument(url)
+                    updateSounder(logic.loadInstrument(url))
                 }
             }
         }
