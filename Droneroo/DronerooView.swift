@@ -71,7 +71,7 @@ struct DronerooView: View {
             }
             .padding()
             .onAppear {
-                restart()
+                enterView()
             }
             .onChange(of: toToggleDrone) {
                 if toToggleDrone { logic.toggleDrone() }
@@ -87,7 +87,7 @@ struct DronerooView: View {
         }
     }
 
-    private func restart() {
+    private func enterView() {
         if let soundbank {
             updateSounder(logic.loadInstrument(soundbank, program: program))
         } else {
@@ -323,7 +323,6 @@ struct DronerooView: View {
         }
     }
 #else
-    @State private var soundbankUrl: URL?
     @State private var isSoundbankPickerPresented = false
     @State private var isAudioSheetPresented = false
     private let sequencePickerStyle = DefaultPickerStyle()
@@ -377,12 +376,12 @@ struct DronerooView: View {
             isSoundbankPickerPresented = true
         }
         .sheet(isPresented: $isSoundbankPickerPresented) {
-            FilePickerIOS(fileURL: $soundbankUrl, types: soundbankTypes)
+            FilePickerIOS(fileURL: $soundbank, types: soundbankTypes)
         }
         .addToTour(audioTour, "soundbank", soundBankTourText)
         .onChange(of: isSoundbankPickerPresented) {
             if !isSoundbankPickerPresented {
-                if let url = soundbankUrl {
+                if let url = soundbank {
                     updateSounder(logic.loadInstrument(url))
                 }
             }
