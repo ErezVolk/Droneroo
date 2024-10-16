@@ -91,7 +91,7 @@ class DronerooLogic: NSObject, ObservableObject {
         audioEngine.attach(sampler)
         audioEngine.connect(sampler, to: audioEngine.mainMixerNode, format: nil)
     }
-    
+
     /// Load the bundled instrument
     func loadBundledInstrument() -> Sounder? {
         return loadInstrument(bundledInstrument)
@@ -99,7 +99,7 @@ class DronerooLogic: NSObject, ObservableObject {
 
     /// Load instrument from a soundbank
     func loadInstrument(_ url: URL, program: Int = 0) -> Sounder? {
-        var sounder: Sounder? = nil
+        var sounder: Sounder?
         blink {
             sounder = doLoadInstrument(soundbank: url, program: program) ?? newSampler()
         }

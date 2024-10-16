@@ -4,12 +4,6 @@ import SwiftUI
 import Combine
 import UniformTypeIdentifiers
 
-enum Instrument: String, CaseIterable, Identifiable {
-    case strings = "Strings"
-    case beep = "Beep"
-    var id: String { self.rawValue }
-}
-
 extension View {
     /// Convenience wrapper around `.onKeyPress` so `action` can be a one-liner.
     func handleKey(_ key: KeyEquivalent, action: @escaping () -> Void) -> some View {
@@ -33,12 +27,12 @@ struct DronerooView: View {
     // Since calling `audioManager` from `.onKeyPress`/`.onTap` issues errors, save them aside
     @State private var toChangeNote = 0
     @State private var toToggleDrone = false
-    
+
     @FocusState private var haveKeyboardFocus: Bool
     private let soundbankTypes = [UTType(filenameExtension: "sf2")!, UTType(filenameExtension: "dfs")!]
-    private let MAIN_TOUR = ["middle", "right", "sequence", "signpost"]
-    private let AUDIO_TOUR = ["soundbank", "program", "velocity"]
-    private let SOUNDBANK_TOUR_TEXT = "Choose a soundbank file."
+    private let mainTourStops = ["middle", "right", "sequence", "signpost"]
+    private let audioTourStops = ["soundbank", "program", "velocity"]
+    private let soundBankTourText = "Choose a soundbank file."
     private var tour: Tour
     private var audioTour: Tour
 
@@ -92,7 +86,7 @@ struct DronerooView: View {
             }
         }
     }
-    
+
     private func restart() {
         if let soundbank {
             updateSounder(logic.loadInstrument(soundbank, program: program))
@@ -120,11 +114,11 @@ struct DronerooView: View {
                 offBackColor: .drGrey7
             ))
     }
-    
+
     var leftButton: some View {
         prevNextButton(text: logic.previousNoteName, cond: direction < 0)
     }
-    
+
     var rightButton: some View {
         prevNextButton(text: logic.nextNoteName, cond: direction > 0)
     }
@@ -166,13 +160,13 @@ struct DronerooView: View {
             .addToTour(audioTour, "program", "Next program within soundbank")
         }
     }
-    
+
     func nextProgram() {
         if let soundbank {
-            self.updateSounder(logic.loadInstrument(soundbank, program: program + 1) ?? logic.loadInstrument(soundbank, program: 0))
+            self.updateSounder(logic.loadInstrument(soundbank, program: program + 1) ?? logic.loadInstrument(soundbank))
         }
     }
-    
+
     func updateSounder(_ sounder: Sounder?) {
         if let sounder {
             soundbank = sounder.soundbank
@@ -184,11 +178,15 @@ struct DronerooView: View {
     }
 
     var volumeSlider: some View {
-        slider(value: $volume, low: "speaker", high: "speaker.wave.3", help: "Volume", propagate: { logic.setVolume(volume) })
+        slider(value: $volume, low: "speaker", high: "speaker.wave.3", help: "Volume") {
+            logic.setVolume(volume)
+        }
     }
 
     var velocitySlider: some View {
-        slider(value: $velocity, low: "dial.low", high: "dial.high", help: "MIDI Velocity", propagate: { logic.setVelocity(velocity) })
+        slider(value: $velocity, low: "dial.low", high: "dial.high", help: "MIDI Velocity") {
+            logic.setVelocity(velocity)
+        }
             .disabled(soundbank == nil)
             .addToTour(audioTour, "velocity", "MIDI velocity")
     }
@@ -205,16 +203,26 @@ struct DronerooView: View {
         }
     }
 
+    var resetButton: some View {
+        makePlainButton(systemImage: "restart") {
+            DronerooState.shared.reset()
+        }
+    }
+
     var tourButton: some View {
-        Button("", systemImage: tour.inProgress ? "xmark.circle" : "questionmark.circle") {
+        makePlainButton(systemImage: tour.inProgress ? "xmark.circle" : "questionmark.circle") {
             tour.toggle()
         }
-        .buttonStyle(.plain)
-        .fixedSize()
+    }
+
+    func makePlainButton(systemImage: String, _ action: @escaping @MainActor () -> Void) -> some View {
+        return Button("", systemImage: systemImage, action: action)
+            .buttonStyle(.plain)
+            .fixedSize()
     }
 
     /// Slider with label showing (on iOS it doesn't)
-    func slider(value: Binding<Double>, low: String, high: String, help: String, propagate: @escaping () -> Void) -> some View {
+    func slider(value: Binding<Double>, low: String, high: String, help: String, _ propagate: @escaping () -> Void) -> some View {
         return HStack {
             sliderLabel("Minimum \(help)", systemImage: low)
             Slider(value: value, in: 0...1) {
@@ -227,11 +235,11 @@ struct DronerooView: View {
             sliderLabel("Maximum \(help)", systemImage: low)
         }
         .padding(.horizontal)
-        .onAppear() { propagate() }
+        .onAppear { propagate() }
     }
-    
+
     func sliderLabel(_ text: String, systemImage: String) -> some View {
-        Label(text, systemImage: systemImage).labelStyle(.iconOnly)//.foregroundStyle(Color(.drGreen2))
+        Label(text, systemImage: systemImage).labelStyle(.iconOnly)
     }
 
     /// The "which way" button
@@ -260,8 +268,8 @@ struct DronerooView: View {
     var identityOverlay: some View {
         VStack {
             Spacer()
-            HStack() {
-                tourButton.hidden()
+            HStack {
+                resetButton
                 Spacer()
                 Link(getWhoAmI(), destination: URL(string: "https://github.com/ErezVolk/Droneroo")!)
                     .font(.caption)
@@ -276,9 +284,9 @@ struct DronerooView: View {
 #if os(macOS)
     private let sequencePickerStyle = SegmentedPickerStyle()
     private let sequencePickerTint = Color.drGrey8
-    
+
     init() {
-        tour = Tour(MAIN_TOUR + AUDIO_TOUR)
+        tour = Tour(mainTourStops + audioTourStops)
         audioTour = tour
     }
 
@@ -299,7 +307,7 @@ struct DronerooView: View {
                 updateSounder(logic.loadInstrument(url))
             }
         }
-        .addToTour(audioTour, "soundbank", SOUNDBANK_TOUR_TEXT)
+        .addToTour(audioTour, "soundbank", soundBankTourText)
     }
 
     var instrumentPanel: some View {
@@ -320,10 +328,10 @@ struct DronerooView: View {
     @State private var isAudioSheetPresented = false
     private let sequencePickerStyle = DefaultPickerStyle()
     private let sequencePickerTint = Color.drGreen2
-    
+
     init() {
-        tour = Tour(MAIN_TOUR + ["audio"])
-        audioTour = Tour(AUDIO_TOUR)
+        tour = Tour(mainTourStops + ["audio"])
+        audioTour = Tour(audioTourStops)
     }
 
     var instrumentPanel: some View {
@@ -345,7 +353,7 @@ struct DronerooView: View {
                     volumeSlider
                     velocitySlider
                 }
-                
+
                 VStack {
                     Spacer()
                     HStack {
@@ -371,7 +379,7 @@ struct DronerooView: View {
         .sheet(isPresented: $isSoundbankPickerPresented) {
             FilePickerIOS(fileURL: $soundbankUrl, types: soundbankTypes)
         }
-        .addToTour(audioTour, "soundbank", SOUNDBANK_TOUR_TEXT)
+        .addToTour(audioTour, "soundbank", soundBankTourText)
         .onChange(of: isSoundbankPickerPresented) {
             if !isSoundbankPickerPresented {
                 if let url = soundbankUrl {
