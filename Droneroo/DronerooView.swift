@@ -30,7 +30,7 @@ struct DronerooView: View {
 
     @FocusState private var haveKeyboardFocus: Bool
     private let soundbankTypes = [UTType(filenameExtension: "sf2")!, UTType(filenameExtension: "dfs")!]
-    private let mainTourStops = ["middle", "right", "sequence", "signpost"]
+    private let mainTourStops = ["middle", "right", "sequence", "signpost", "reset"]
     private let audioTourStops = ["soundbank", "program", "velocity"]
     private let soundBankTourText = "Choose a soundbank file."
     private var tour: Tour
@@ -205,6 +205,7 @@ struct DronerooView: View {
         makePlainButton("Reset", systemImage: "restart") {
             DronerooState.shared.reset()
         }
+        .addToTour(tour, "reset", "Reset")
     }
 
     var tourButton: some View {
