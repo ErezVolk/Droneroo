@@ -178,7 +178,10 @@ struct DronerooView: View {
     }
 
     var tourButton: some View {
-        Button("", systemImage: tour.inProgress ? "xmark.circle" : "questionmark.circle") { tour.toggle() }
+        Button("", systemImage: tour.inProgress ? "xmark.circle" : "questionmark.circle") {
+            tour.toggle()
+        }
+        .buttonStyle(.plain)
         .fixedSize()
     }
 
@@ -354,6 +357,7 @@ struct DronerooView: View {
         Button("Tour", systemImage: audioTour.inProgress ? "xmark.circle" : "questionmark.circle") {
             audioTour.toggle()
         }
+        .buttonStyle(.plain)
         .labelStyle(.iconOnly)
         .fixedSize()
     }
