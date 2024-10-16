@@ -1,7 +1,7 @@
 #  TODO List
 
-- Must save state
-  - Add a "reset all to defaults"
+- Must save state (still left: soundbank and program)
+- Add a "reset all to defaults"
 - Stop tour when user clicks somewhere else
 - Different layout for iPhone/iPad https://stackoverflow.com/questions/68414871
 - Different color scheme for desktop, at the very least something more somber and less pastel
