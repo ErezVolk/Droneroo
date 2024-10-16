@@ -1,6 +1,5 @@
 #  TODO List
 
-- Must save state (still left: soundbank and program)
 - Add a "reset all to defaults"
 - Stop tour when user clicks somewhere else
 - Different layout for iPhone/iPad https://stackoverflow.com/questions/68414871

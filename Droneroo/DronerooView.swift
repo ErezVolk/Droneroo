@@ -27,14 +27,14 @@ struct DronerooView: View {
     @AppStorage("direction") private var direction = 1
     @AppStorage("volume") var volume: Double = 1.0
     @AppStorage("velocity") var velocity: Double = 0.8
+    @AppStorage("soundbank") var soundbank: URL?
+    @AppStorage("program") var program: Int = 0
 
     // Since calling `audioManager` from `.onKeyPress`/`.onTap` issues errors, save them aside
     @State private var toChangeNote = 0
     @State private var toToggleDrone = false
     
     @FocusState private var haveKeyboardFocus: Bool
-    @State private var soundbank: URL? = nil
-    @State private var program: Int = 0
     private let soundbankTypes = [UTType(filenameExtension: "sf2")!, UTType(filenameExtension: "dfs")!]
     private let MAIN_TOUR = ["middle", "right", "sequence", "signpost"]
     private let AUDIO_TOUR = ["soundbank", "program", "velocity"]
@@ -77,7 +77,7 @@ struct DronerooView: View {
             }
             .padding()
             .onAppear {
-                loadSequence()
+                restart()
             }
             .onChange(of: toToggleDrone) {
                 if toToggleDrone { logic.toggleDrone() }
@@ -91,6 +91,15 @@ struct DronerooView: View {
                 loadSequence()
             }
         }
+    }
+    
+    private func restart() {
+        if let soundbank {
+            updateSounder(logic.loadInstrument(soundbank, program: program))
+        } else {
+            updateSounder(logic.loadBeep())
+        }
+        loadSequence()
     }
 
     private func loadSequence() {
@@ -148,13 +157,19 @@ struct DronerooView: View {
                 .font(.callout.monospaced())
 
             Button("Next Program", systemImage: "waveform") {
-                self.updateSounder(logic.nextProgram())
+                nextProgram()
             }
             .labelStyle(.iconOnly)
             .fixedSize()
             .disabled(soundbank == nil)
             .foregroundStyle(soundbank == nil ? Color.gray : Color.primary)
             .addToTour(audioTour, "program", "Next program within soundbank")
+        }
+    }
+    
+    func nextProgram() {
+        if let soundbank {
+            self.updateSounder(logic.loadInstrument(soundbank, program: program + 1) ?? logic.loadInstrument(soundbank, program: 0))
         }
     }
     
@@ -186,7 +201,7 @@ struct DronerooView: View {
 
     var beepButton: some View {
         Button(Instrument.beep.rawValue) {
-            logic.resetInstrument()
+            updateSounder(logic.loadBeep())
         }
     }
 

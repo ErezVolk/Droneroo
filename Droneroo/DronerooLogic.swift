@@ -28,8 +28,6 @@ class DronerooLogic: NSObject, ObservableObject {
     private var velocity: Double = 0.8
     private let audioEngine = AVAudioEngine()
     private var sampler = AVAudioUnitSampler()
-    private var soundbank: URL?
-    private var program: UInt8 = 0
     private var noteSequence: [UInt8] = []
     private var nameSequence: [String] = []
     private var currentIndex = 0
@@ -75,17 +73,16 @@ class DronerooLogic: NSObject, ObservableObject {
     }
 
     /// Reset to the default Beep sound
-    func resetInstrument() {
+    func loadBeep() -> Sounder? {
         blink { _ = newSampler() }
+        return nil
     }
 
-    /// Recreate sample, resetting to beep
+    /// Recreate sampler object, resetting to beep
     private func newSampler() -> Sounder? {
         assert(!isPlaying)
         audioEngine.detach(sampler)
         sampler = AVAudioUnitSampler()
-        soundbank = nil
-        program = 0
         connectSampler()
         return nil
     }
@@ -101,7 +98,7 @@ class DronerooLogic: NSObject, ObservableObject {
     }
 
     /// Load instrument from a soundbank
-    func loadInstrument(_ url: URL, program: UInt8 = 0) -> Sounder? {
+    func loadInstrument(_ url: URL, program: Int = 0) -> Sounder? {
         var sounder: Sounder? = nil
         blink {
             sounder = doLoadInstrument(soundbank: url, program: program) ?? newSampler()
@@ -109,30 +106,17 @@ class DronerooLogic: NSObject, ObservableObject {
         return sounder
     }
 
-    /// Within the current soundbank, try to load the next program
-    func nextProgram() -> Sounder? {
-        guard let soundbank else { return nil }
-        var sounder: Sounder? = nil
-        blink {
-            sounder = doLoadInstrument(soundbank: soundbank, program: program + 1) ?? doLoadInstrument(soundbank: soundbank, program: 0) ?? newSampler()
-        }
-        return sounder
-    }
-
     /// Actually try to load a soundbank instrument (call when not playing)
     /// On success, sets `self.soundbank` etc.
     /// On failure, leaves them untouched (caller deals with it)
-    private func doLoadInstrument(soundbank: URL, program: UInt8) -> Sounder? {
+    private func doLoadInstrument(soundbank: URL, program: Int) -> Sounder? {
         do {
             try sampler.loadSoundBankInstrument(
                 at: soundbank,
-                program: program,
+                program: UInt8(program),
                 bankMSB: UInt8(kAUSampler_DefaultMelodicBankMSB),
                 bankLSB: UInt8(kAUSampler_DefaultBankLSB))
 
-            self.soundbank = soundbank
-            self.program = program
-            
             // Loading a new instrument can disable sound, so flip off and on after a short delay
             DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) { self.blink() }
             return Sounder(soundbank: soundbank, program: Int(program))
