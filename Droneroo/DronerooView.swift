@@ -150,11 +150,9 @@ struct DronerooView: View {
             Text(soundbank == nil ? "None": "\(soundbank!.deletingPathExtension().lastPathComponent):\(program)")
                 .font(.callout.monospaced())
 
-            Button("Next Program", systemImage: "waveform") {
+            makePlainButton("Next progream", systemImage: "waveform") {
                 nextProgram()
             }
-            .labelStyle(.iconOnly)
-            .fixedSize()
             .disabled(soundbank == nil)
             .foregroundStyle(soundbank == nil ? Color.gray : Color.primary)
             .addToTour(audioTour, "program", "Next program within soundbank")
@@ -204,20 +202,21 @@ struct DronerooView: View {
     }
 
     var resetButton: some View {
-        makePlainButton(systemImage: "restart") {
+        makePlainButton("Reset", systemImage: "restart") {
             DronerooState.shared.reset()
         }
     }
 
     var tourButton: some View {
-        makePlainButton(systemImage: tour.inProgress ? "xmark.circle" : "questionmark.circle") {
+        makePlainButton("Tour", systemImage: tour.inProgress ? "xmark.circle" : "questionmark.circle") {
             tour.toggle()
         }
     }
 
-    func makePlainButton(systemImage: String, _ action: @escaping @MainActor () -> Void) -> some View {
-        return Button("", systemImage: systemImage, action: action)
+    func makePlainButton(_ text: String, systemImage: String, _ action: @escaping () -> Void) -> some View {
+        return Button(text, systemImage: systemImage, action: action)
             .buttonStyle(.plain)
+            .labelStyle(.iconOnly)
             .fixedSize()
     }
 
@@ -268,14 +267,20 @@ struct DronerooView: View {
     var identityOverlay: some View {
         VStack {
             Spacer()
-            HStack {
-                resetButton
-                Spacer()
+            ZStack {
                 Link(getWhoAmI(), destination: URL(string: "https://github.com/ErezVolk/Droneroo")!)
                     .font(.caption)
                     .opacity(0.7)
-                Spacer()
-                tourButton
+
+                HStack {
+                    resetButton
+                    Spacer()
+                }
+
+                HStack {
+                    Spacer()
+                    tourButton
+                }
             }
         }
         .padding()
