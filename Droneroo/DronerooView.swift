@@ -30,8 +30,9 @@ struct DronerooView: View {
 
     @FocusState private var haveKeyboardFocus: Bool
     private let soundbankTypes = [UTType(filenameExtension: "sf2")!, UTType(filenameExtension: "dfs")!]
-    private let mainTourStops = ["middle", "right", "sequence", "signpost", "reset"]
+    private let mainTourStops = ["middle", "right", "sequence", "signpost"]
     private let audioTourStops = ["soundbank", "program", "velocity"]
+    private let postAudioTourStops = ["reset"]
     private let soundBankTourText = "Choose a soundbank file."
     private var tour: Tour
     private var audioTour: Tour
@@ -292,7 +293,7 @@ struct DronerooView: View {
     private let sequencePickerTint = Color.drGrey8
 
     init() {
-        tour = Tour(mainTourStops + audioTourStops)
+        tour = Tour(mainTourStops + audioTourStops + postAudioTourStops)
         audioTour = tour
     }
 
@@ -335,7 +336,7 @@ struct DronerooView: View {
     private let sequencePickerTint = Color.drGreen2
 
     init() {
-        tour = Tour(mainTourStops + ["audio"])
+        tour = Tour(mainTourStops + ["audio"] + postAudioTourStops)
         audioTour = Tour(audioTourStops)
     }
 
