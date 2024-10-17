@@ -23,6 +23,10 @@ struct DronerooView: View {
     @AppStorage("velocity") var velocity: Double = 0.8
     @AppStorage("soundbank") var soundbank: URL?
     @AppStorage("program") var program: Int = 0
+    @AppStorage("index") var index: Int = 0
+    @AppStorage("current") var currentNote: String = "?"
+    @AppStorage("previous") var previousNote: String = "?"
+    @AppStorage("next") var nextNote: String = "?"
 
     // Since calling `audioManager` from `.onKeyPress`/`.onTap` issues errors, save them aside
     @State private var toChangeNote = 0
@@ -79,7 +83,7 @@ struct DronerooView: View {
                 toToggleDrone = false
             }
             .onChange(of: toChangeNote) {
-                if toChangeNote != 0 { logic.changeDrone(toChangeNote) }
+                if toChangeNote != 0 { updatePosition(logic.changeDrone(toChangeNote)) }
                 toChangeNote = 0
             }
             .onChange(of: selectedSequence) {
@@ -95,16 +99,24 @@ struct DronerooView: View {
             updateSounder(logic.loadBeep())
         }
         loadSequence()
+        updatePosition(logic.setDrone(index))
     }
 
     private func loadSequence() {
         logic.sequenceType = selectedSequence
-        logic.loadSequence()
+        updatePosition(logic.loadSequence())
+    }
+
+    private func updatePosition(_ position: Position) {
+        index = position.index
+        currentNote = position.currentNote
+        previousNote = position.previousNote
+        nextNote = position.nextNote
     }
 
     /// The "current tone" circle and keyboard event receiver
     var middleButton: some View {
-        Toggle(logic.currentNoteName, isOn: $logic.isPlaying)
+        Toggle(currentNote, isOn: $logic.isPlaying)
             .focusable()
             .focused($haveKeyboardFocus)
             .onAppear { haveKeyboardFocus = true }
@@ -117,11 +129,11 @@ struct DronerooView: View {
     }
 
     var leftButton: some View {
-        prevNextButton(text: logic.previousNoteName, cond: direction < 0)
+        prevNextButton(text: previousNote, cond: direction < 0)
     }
 
     var rightButton: some View {
-        prevNextButton(text: logic.nextNoteName, cond: direction > 0)
+        prevNextButton(text: nextNote, cond: direction > 0)
     }
 
     /// The "previous/next tone" circles
@@ -223,7 +235,12 @@ struct DronerooView: View {
     }
 
     /// Slider with label showing (on iOS it doesn't)
-    func slider(value: Binding<Double>, low: String, high: String, help: String, _ propagate: @escaping () -> Void) -> some View {
+    func slider(
+        value: Binding<Double>,
+        low: String,
+        high: String,
+        help: String,
+        _ propagate: @escaping () -> Void) -> some View {
         return HStack {
             sliderLabel("Minimum \(help)", systemImage: low)
             Slider(value: value, in: 0...1) {
