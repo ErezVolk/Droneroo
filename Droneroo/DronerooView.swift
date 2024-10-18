@@ -215,7 +215,7 @@ struct DronerooView: View {
     }
 
     var resetButton: some View {
-        makePlainButton("Reset", systemImage: "restart") {
+        makePlainButton("Reset", systemImage: "arrow.uturn.backward.circle") {
             DronerooState.shared.reset()
         }
         .addToTour(tour, "reset", "Reset")
