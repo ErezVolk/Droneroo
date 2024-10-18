@@ -28,7 +28,6 @@ struct Position {
 
 class DronerooLogic: NSObject, ObservableObject {
     @Published var isPlaying = false
-    @Published var isReversed = false
     @Published var sequenceType: SequenceType = .circleOfFourth
     private var position: Position = Position(index: 0, previousNote: "?", currentNote: "?", nextNote: "?")
     private var velocity: Double = 0.8
