@@ -28,7 +28,6 @@ struct Position {
 
 class DronerooLogic: NSObject, ObservableObject {
     @Published var isPlaying = false
-    @Published var sequenceType: SequenceType = .circleOfFourth
     private var position: Position = Position(index: 0, previousNote: "?", currentNote: "?", nextNote: "?")
     private var velocity: Double = 0.8
     private let audioEngine = AVAudioEngine()
@@ -45,7 +44,7 @@ class DronerooLogic: NSObject, ObservableObject {
     override init() {
         super.init()
         setupAudioEngine()
-        _ = loadSequence()
+        _ = loadSequence(.circleOfFourth)
     }
 
     private func setupAudioEngine() {
@@ -215,7 +214,7 @@ class DronerooLogic: NSObject, ObservableObject {
     }
 
     /// Configure the actual sequence of notes, based on `sequenceType`.
-    func loadSequence() -> Position {
+    func loadSequence(_ sequenceType: SequenceType) -> Position {
         blink {
             currentIndex = 0
             switch sequenceType {

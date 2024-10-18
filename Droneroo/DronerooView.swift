@@ -103,8 +103,7 @@ struct DronerooView: View {
     }
 
     private func loadSequence() {
-        logic.sequenceType = selectedSequence
-        updatePosition(logic.loadSequence())
+        updatePosition(logic.loadSequence(selectedSequence))
     }
 
     private func updatePosition(_ position: Position) {
