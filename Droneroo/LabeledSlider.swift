@@ -20,7 +20,7 @@ struct LabeledSlider: View {
                     propagate()
                 }
             }
-            sliderLabel("Maximum \(help)", systemImage: low)
+            sliderLabel("Maximum \(help)", systemImage: high)
         }
         .padding(.horizontal)
         .onAppear { propagate() }

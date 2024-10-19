@@ -181,11 +181,13 @@ struct DronerooView: View {
     }
 
     var velocitySlider: some View {
-        LabeledSlider(value: $velocity, low: "dial.low", high: "dial.high", help: "MIDI Velocity") {
-            logic.setVelocity(velocity)
-        }
-            .disabled(soundbank == nil)
-            .addToTour(audioTour, "velocity", "MIDI velocity")
+        LabeledSlider(value: $velocity,
+                      low: "gauge.open.with.lines.needle.33percent.and.arrowtriangle",
+                      high: "gauge.open.with.lines.needle.67percent.and.arrowtriangle",
+                      help: "MIDI Velocity",
+                      propagate: { logic.setVolume(velocity) })
+        .disabled(soundbank == nil)
+        .addToTour(audioTour, "velocity", "MIDI velocity")
     }
 
     var stringsButton: some View {
