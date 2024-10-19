@@ -18,7 +18,7 @@ struct DronerooView: View {
     @AppStorage("previous") var previousNote: String = "?"
     @AppStorage("next") var nextNote: String = "?"
 
-    // Since calling `audioManager` from `.onKeyPress`/`.onTap` issues errors, save them aside
+    // Since calling `logic` from `.onKeyPress`/`.onTap` issues errors, save them aside
     @State private var toChangeNote = 0
     @State private var toToggleDrone = false
 
