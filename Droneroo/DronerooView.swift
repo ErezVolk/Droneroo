@@ -14,14 +14,14 @@ struct DronerooView: View {
     @AppStorage("soundbank") var soundbank: URL?
     @AppStorage("program") var program: Int = 0
     @AppStorage("index") var index: Int = 0
-    @AppStorage("current") var currentNote: String = "?"
-    @AppStorage("previous") var previousNote: String = "?"
-    @AppStorage("next") var nextNote: String = "?"
 
     // Since calling `logic` from `.onKeyPress`/`.onTap` issues errors, save them aside
     @State private var toChangeNote = 0
     @State private var toToggleDrone = false
 
+    @State var currentNote: String = "?"
+    @State var previousNote: String = "?"
+    @State var nextNote: String = "?"
     @FocusState private var haveKeyboardFocus: Bool
     private let soundbankTypes = [UTType(filenameExtension: "sf2")!, UTType(filenameExtension: "dfs")!]
     private let mainTourStops = ["middle", "right", "sequence", "signpost"]
