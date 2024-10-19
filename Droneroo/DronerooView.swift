@@ -77,6 +77,10 @@ struct DronerooView: View {
     }
 
     private func reapplySavedState() {
+        let index = self.index
+        direction = direction < 0 ? -1 : 1
+        volume = max(0, min(volume, 1.0))
+        velocity = max(0, min(velocity, 1.0))
         if let soundbank {
             updateSounder(logic.loadInstrument(soundbank, program: program))
         } else {

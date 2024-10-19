@@ -151,14 +151,13 @@ class DronerooLogic: NSObject, ObservableObject {
     /// Set current note for playback and display (and profit).
     private func setPosition(_ index: Int) {
         assert(!isPlaying)
-        let mod = nameSequence.count
-        currentIndex = index
+        currentIndex = modSeq(index)
         currentNote = noteSequence[index]
         position = Position(
             index: index,
-            previousNote: nameSequence[(index + mod - 1) % mod],
+            previousNote: nameSequence[modSeq(index - 1)],
             currentNote: nameSequence[index],
-            nextNote: nameSequence[(index + 1) % mod])
+            nextNote: nameSequence[modSeq(index + 1)])
     }
 
     /// Set the `isPlaying` flag, and also try to disable screen sleeping
@@ -179,19 +178,13 @@ class DronerooLogic: NSObject, ObservableObject {
 
     /// Update the current note, based on `delta` and `sequenceOrder`
     func changeDrone(_ delta: Int) -> Position {
-        let mod = noteSequence.count
-        blink {
-            setPosition((((currentIndex + delta) % mod) + mod) % mod)
-        }
+        blink { setPosition(modSeq(currentIndex + delta)) }
         return position
     }
 
     /// Set specific drone by index in current sequence
     func setDrone(_ index: Int) -> Position {
-        assert(index >= 0 && index < noteSequence.count)
-        blink {
-            setPosition(index)
-        }
+        blink { setPosition(modSeq(index)) }
         return position
     }
 
@@ -226,6 +219,13 @@ class DronerooLogic: NSObject, ObservableObject {
             setPosition(0)
         }
         return position
+    }
+
+    /// "Modulu (current) Sequence"
+    private func modSeq(_ index: Int) -> Int {
+        var idx = index
+        while idx < 0 { idx += noteSequence.count }
+        return idx % noteSequence.count
     }
 
     /// Converts a string like "C#" to a MIDI note number in octave 2 (C2...B2)
