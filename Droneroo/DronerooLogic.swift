@@ -224,7 +224,7 @@ class DronerooLogic: NSObject, ObservableObject {
             case .chromatic:
                 nameSequence = ["C", "C♯/D♭", "D", "D♯/E♭", "E", "F", "F♯/G♭", "G", "G♯/A♭", "A", "A♯/B♭", "B"]
             }
-            noteSequence = nameSequence.map { DronerooLogic.noteNameToMidiNumber($0) }
+            noteSequence = nameSequence.map(DronerooLogic.noteNameToMidiNumber)
             setPosition(0)
         }
         return position
