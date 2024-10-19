@@ -2,7 +2,6 @@
 
 import SwiftUI
 import Combine
-import UniformTypeIdentifiers
 
 struct DronerooView: View {
     @StateObject private var logic = DronerooLogic()
@@ -23,7 +22,6 @@ struct DronerooView: View {
     @State var previousNote: String = "?"
     @State var nextNote: String = "?"
     @FocusState private var haveKeyboardFocus: Bool
-    private let soundbankTypes = [UTType(filenameExtension: "sf2")!, UTType(filenameExtension: "dfs")!]
     private let mainTourStops = ["middle", "right", "sequence", "signpost"]
     private let audioTourStops = ["soundbank", "program", "velocity"]
     private let postAudioTourStops = ["reset"]
@@ -270,7 +268,7 @@ struct DronerooView: View {
 
     func pickSoundFont() -> URL? {
         let panel = NSOpenPanel()
-        panel.allowedContentTypes = soundbankTypes
+        panel.allowedContentTypes = DronerooLogic.soundbankTypes
         panel.allowsMultipleSelection = false
         panel.canChooseDirectories = false
         if panel.runModal() == .OK {
@@ -354,7 +352,7 @@ struct DronerooView: View {
             isSoundbankPickerPresented = true
         }
         .sheet(isPresented: $isSoundbankPickerPresented) {
-            FilePickerIOS(fileURL: $soundbank, types: soundbankTypes)
+            FilePickerIOS(fileURL: $soundbank, types: DronerooLogic.soundbankTypes)
         }
         .addToTour(audioTour, "soundbank", soundBankTourText)
         .onChange(of: isSoundbankPickerPresented) {

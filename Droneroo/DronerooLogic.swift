@@ -27,6 +27,8 @@ struct Position {
 }
 
 class DronerooLogic: NSObject, ObservableObject {
+    static let soundbankTypes = [UTType(filenameExtension: "sf2")!, UTType(filenameExtension: "dfs")!]
+
     @Published var isPlaying = false
     private var position: Position = Position(index: 0, previousNote: "?", currentNote: "?", nextNote: "?")
     private var velocity: Double = 0.8
@@ -132,7 +134,6 @@ class DronerooLogic: NSObject, ObservableObject {
     /// Start playing.
     private func startDrone() {
         guard !isPlaying else { return }
-        setPosition() // Probably redundant, but can't hurt
         let velocity = UInt8(self.velocity * 127)
         sampler.startNote(currentNote, withVelocity: velocity, onChannel: 0)
         sampler.startNote(currentNote + 12, withVelocity: velocity, onChannel: 0)
@@ -148,20 +149,21 @@ class DronerooLogic: NSObject, ObservableObject {
     }
 
     /// Set current note for playback and display (and profit).
-    private func setPosition() {
+    private func setPosition(_ index: Int) {
         assert(!isPlaying)
         let mod = nameSequence.count
-        currentNote = noteSequence[currentIndex]
+        currentIndex = index
+        currentNote = noteSequence[index]
         position = Position(
-            index: currentIndex,
-            previousNote: nameSequence[(currentIndex + mod - 1) % mod],
-            currentNote: nameSequence[currentIndex],
-            nextNote: nameSequence[(currentIndex + 1) % mod])
+            index: index,
+            previousNote: nameSequence[(index + mod - 1) % mod],
+            currentNote: nameSequence[index],
+            nextNote: nameSequence[(index + 1) % mod])
     }
 
     /// Set the `isPlaying` flag, and also try to disable screen sleeping
     private func setIsPlaying(_ newValue: Bool) {
-        if newValue == isPlaying { return }
+        guard newValue != isPlaying else { return }
         isPlaying = newValue
         caffeine.stayUp(newValue)
     }
@@ -179,8 +181,7 @@ class DronerooLogic: NSObject, ObservableObject {
     func changeDrone(_ delta: Int) -> Position {
         let mod = noteSequence.count
         blink {
-            currentIndex = (((currentIndex + delta) % mod) + mod) % mod
-            setPosition()
+            setPosition((((currentIndex + delta) % mod) + mod) % mod)
         }
         return position
     }
@@ -189,8 +190,7 @@ class DronerooLogic: NSObject, ObservableObject {
     func setDrone(_ index: Int) -> Position {
         assert(index >= 0 && index < noteSequence.count)
         blink {
-            currentIndex = index
-            setPosition()
+            setPosition(index)
         }
         return position
     }
@@ -216,7 +216,6 @@ class DronerooLogic: NSObject, ObservableObject {
     /// Configure the actual sequence of notes, based on `sequenceType`.
     func loadSequence(_ sequenceType: SequenceType) -> Position {
         blink {
-            currentIndex = 0
             switch sequenceType {
             case .circleOfFourth:
                 nameSequence = ["C", "F", "A♯/B♭", "D♯/E♭", "G♯/A♭", "C♯/D♭", "F♯/G♭", "B", "E", "A", "D", "G"]
@@ -226,7 +225,7 @@ class DronerooLogic: NSObject, ObservableObject {
                 nameSequence = ["C", "C♯/D♭", "D", "D♯/E♭", "E", "F", "F♯/G♭", "G", "G♯/A♭", "A", "A♯/B♭", "B"]
             }
             noteSequence = nameSequence.map { DronerooLogic.noteNameToMidiNumber($0) }
-            setPosition()
+            setPosition(0)
         }
         return position
     }
