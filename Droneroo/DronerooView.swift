@@ -77,7 +77,6 @@ struct DronerooView: View {
     }
 
     private func reapplySavedState() {
-        let index = self.index
         direction = direction < 0 ? -1 : 1
         volume = max(0, min(volume, 1.0))
         velocity = max(0, min(velocity, 1.0))
@@ -86,12 +85,11 @@ struct DronerooView: View {
         } else {
             updateSounder(logic.loadBeep())
         }
-        loadSequence()
-        updatePosition(logic.setDrone(index))
+        loadSequence(index)
     }
 
-    private func loadSequence() {
-        updatePosition(logic.loadSequence(selectedSequence))
+    private func loadSequence(_ index: Int? = nil) {
+        updatePosition(logic.loadSequence(selectedSequence, index))
     }
 
     private func updatePosition(_ position: Position) {

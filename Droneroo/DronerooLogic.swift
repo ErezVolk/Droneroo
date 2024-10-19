@@ -205,7 +205,7 @@ class DronerooLogic: NSObject, ObservableObject {
     }
 
     /// Configure the actual sequence of notes, based on `sequenceType`.
-    func loadSequence(_ sequenceType: SequenceType) -> Position {
+    func loadSequence(_ sequenceType: SequenceType, _ index: Int? = nil) -> Position {
         blink {
             switch sequenceType {
             case .circleOfFourth:
@@ -216,7 +216,7 @@ class DronerooLogic: NSObject, ObservableObject {
                 nameSequence = ["C", "C♯/D♭", "D", "D♯/E♭", "E", "F", "F♯/G♭", "G", "G♯/A♭", "A", "A♯/B♭", "B"]
             }
             noteSequence = nameSequence.map(DronerooLogic.noteNameToMidiNumber)
-            setPosition(0)
+            setPosition(index ?? 0)
         }
         return position
     }
