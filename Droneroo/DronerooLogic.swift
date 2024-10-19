@@ -208,9 +208,7 @@ class DronerooLogic: NSObject, ObservableObject {
     /// Do `action` while not playing (pause and resume if called while playing)
     /// A version of `blink()` that doesn't care about `wasPlaying`.
     private func blink(_ action: () -> Void) {
-        blink { _ in
-            action()
-        }
+        blink { _ in action() }
     }
 
     /// Configure the actual sequence of notes, based on `sequenceType`.
