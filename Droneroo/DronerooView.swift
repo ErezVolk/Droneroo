@@ -4,16 +4,6 @@ import SwiftUI
 import Combine
 import UniformTypeIdentifiers
 
-extension View {
-    /// Convenience wrapper around `.onKeyPress` so `action` can be a one-liner.
-    func handleKey(_ key: KeyEquivalent, action: @escaping () -> Void) -> some View {
-        return self.onKeyPress(key) {
-            action()
-            return .handled
-        }
-    }
-}
-
 struct DronerooView: View {
     @StateObject private var logic = DronerooLogic()
     @AppStorage("sequence") private var selectedSequence: SequenceType = .circleOfFourth
@@ -75,9 +65,8 @@ struct DronerooView: View {
                     .colorMultiply(.drGrey8)
             }
             .padding()
-            .onAppear {
-                enterView()
-            }
+            .onAppear { reapplySavedState() }
+            .onChange(of: selectedSequence) { loadSequence() }
             .onChange(of: toToggleDrone) {
                 if toToggleDrone { logic.toggleDrone() }
                 toToggleDrone = false
@@ -86,13 +75,10 @@ struct DronerooView: View {
                 if toChangeNote != 0 { updatePosition(logic.changeDrone(toChangeNote)) }
                 toChangeNote = 0
             }
-            .onChange(of: selectedSequence) {
-                loadSequence()
-            }
         }
     }
 
-    private func enterView() {
+    private func reapplySavedState() {
         if let soundbank {
             updateSounder(logic.loadInstrument(soundbank, program: program))
         } else {
@@ -162,9 +148,10 @@ struct DronerooView: View {
             Text(soundbank == nil ? "None": "\(soundbank!.deletingPathExtension().lastPathComponent):\(program)")
                 .font(.callout.monospaced())
 
-            makePlainButton("Next progream", systemImage: "waveform") {
+            Button("Next progream", systemImage: "waveform") {
                 nextProgram()
             }
+            .plainButton()
             .disabled(soundbank == nil)
             .foregroundStyle(soundbank == nil ? Color.gray : Color.primary)
             .addToTour(audioTour, "program", "Next program within soundbank")
@@ -188,13 +175,13 @@ struct DronerooView: View {
     }
 
     var volumeSlider: some View {
-        slider(value: $volume, low: "speaker", high: "speaker.wave.3", help: "Volume") {
+        LabeledSlider(value: $volume, low: "speaker", high: "speaker.wave.3", help: "Volume") {
             logic.setVolume(volume)
         }
     }
 
     var velocitySlider: some View {
-        slider(value: $velocity, low: "dial.low", high: "dial.high", help: "MIDI Velocity") {
+        LabeledSlider(value: $velocity, low: "dial.low", high: "dial.high", help: "MIDI Velocity") {
             logic.setVelocity(velocity)
         }
             .disabled(soundbank == nil)
@@ -214,49 +201,17 @@ struct DronerooView: View {
     }
 
     var resetButton: some View {
-        makePlainButton("Reset", systemImage: "arrow.uturn.backward.circle") {
+        Button("Reset", systemImage: "arrow.uturn.backward.circle") {
             DronerooState.shared.reset()
         }
-        .addToTour(tour, "reset", "Reset")
+        .plainButton()
+        .addToTour(tour, "reset", "Reset state")
     }
 
     var tourButton: some View {
-        makePlainButton("Tour", systemImage: tour.inProgress ? "xmark.circle" : "questionmark.circle") {
+        Button("Tour", systemImage: tour.inProgress ? "xmark.circle" : "questionmark.circle") {
             tour.toggle()
-        }
-    }
-
-    func makePlainButton(_ text: String, systemImage: String, _ action: @escaping () -> Void) -> some View {
-        return Button(text, systemImage: systemImage, action: action)
-            .buttonStyle(.plain)
-            .labelStyle(.iconOnly)
-            .fixedSize()
-    }
-
-    /// Slider with label showing (on iOS it doesn't)
-    func slider(
-        value: Binding<Double>,
-        low: String,
-        high: String,
-        help: String,
-        _ propagate: @escaping () -> Void) -> some View {
-        return HStack {
-            sliderLabel("Minimum \(help)", systemImage: low)
-            Slider(value: value, in: 0...1) {
-                EmptyView()
-            } onEditingChanged: { isEditing in
-                if !isEditing {
-                    propagate()
-                }
-            }
-            sliderLabel("Maximum \(help)", systemImage: low)
-        }
-        .padding(.horizontal)
-        .onAppear { propagate() }
-    }
-
-    func sliderLabel(_ text: String, systemImage: String) -> some View {
-        Label(text, systemImage: systemImage).labelStyle(.iconOnly)
+        }.plainButton()
     }
 
     /// The "which way" button
@@ -290,15 +245,11 @@ struct DronerooView: View {
         VStack {
             Spacer()
             ZStack {
-                Link(getWhoAmI(), destination: URL(string: "https://github.com/ErezVolk/Droneroo")!)
-                    .font(.caption)
-                    .opacity(0.7)
-
+                InfoView()
                 HStack {
                     resetButton
                     Spacer()
                 }
-
                 HStack {
                     Spacer()
                     tourButton
