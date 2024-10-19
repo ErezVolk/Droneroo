@@ -279,6 +279,10 @@ struct DronerooView: View {
             startPoint: .top,
             endPoint: .bottomTrailing)
         .ignoresSafeArea()
+        .onTapGesture {
+            tour.stopTheTour()
+            audioTour.stopTheTour()
+        }
     }
 
     /// Shows the app name and version in the background

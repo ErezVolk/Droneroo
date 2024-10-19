@@ -36,7 +36,8 @@ class Tour {
         self.toggleCurrent()
     }
 
-    private func stopTheTour() {
+    func stopTheTour() {
+        guard inProgress else { return }
         flags.forEach { flag in
             flag.shown = false
         }
