@@ -17,8 +17,10 @@ extension View {
                   shadowRadius: CGFloat = 3,
                   textColor: Color,
                   circleColor: Color,
-                  textFont: Font? = nil) -> some View {
+                  textFont: Font? = nil,
+                  bold: Bool = false) -> some View {
         font(textFont ?? .system(size: CGFloat(diameter / 4)))
+            .bold(bold)
             .foregroundColor(textColor)
             .modifier(Encircled(diameter: CGFloat(diameter)))
             .shadow(radius: shadowRadius)
@@ -31,6 +33,7 @@ struct EncircledToggleStyle: ToggleStyle {
     var onRadius: CGFloat = 10
     var offRadius: CGFloat = 3
     var textFont: Font?
+    var bold: Bool = false
     var onTextColor: Color
     var onBackColor: Color
     var offTextColor: Color
@@ -43,6 +46,8 @@ struct EncircledToggleStyle: ToggleStyle {
                 shadowRadius: configuration.isOn ? onRadius: offRadius,
                 textColor: configuration.isOn ? onTextColor : offTextColor,
                 circleColor: configuration.isOn ? onBackColor : offBackColor,
-                textFont: self.textFont)
+                textFont: self.textFont,
+                bold: self.bold
+            )
     }
 }

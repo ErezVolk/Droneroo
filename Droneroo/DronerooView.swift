@@ -21,6 +21,7 @@ struct DronerooView: View {
     @State var currentNote: String = "?"
     @State var previousNote: String = "?"
     @State var nextNote: String = "?"
+    @State var pivotNote: String = "?"
     @FocusState private var haveKeyboardFocus: Bool
     private let mainTourStops = ["middle", "right", "sequence", "signpost"]
     private let audioTourStops = ["soundbank", "program", "velocity"]
@@ -94,6 +95,7 @@ struct DronerooView: View {
 
     private func updatePosition(_ position: Position) {
         index = position.index
+        pivotNote = position.pivotNote
         currentNote = position.currentNote
         previousNote = position.previousNote
         nextNote = position.nextNote
@@ -106,6 +108,7 @@ struct DronerooView: View {
             .focused($haveKeyboardFocus)
             .onAppear { haveKeyboardFocus = true }
             .toggleStyle(EncircledToggleStyle(
+                bold: pivotNote == currentNote,
                 onTextColor: .drGreen4,
                 onBackColor: .drGrey8,
                 offTextColor: .drGreen3,
@@ -114,21 +117,22 @@ struct DronerooView: View {
     }
 
     var leftButton: some View {
-        prevNextButton(text: previousNote, cond: direction < 0)
+        prevNextButton(text: previousNote, pending: direction < 0)
     }
 
     var rightButton: some View {
-        prevNextButton(text: nextNote, cond: direction > 0)
+        prevNextButton(text: nextNote, pending: direction > 0)
     }
 
     /// The "previous/next tone" circles
-    func prevNextButton(text: String, cond: Bool) -> some View {
+    func prevNextButton(text: String, pending: Bool) -> some View {
         return Text(text)
             .encircle(
                 diameter: 80,
-                shadowRadius: cond ? 6 : 3,
-                textColor: cond ? .drGreen2 : .drGreen1,
-                circleColor: cond ? .drGrey7 : .drGrey6)
+                shadowRadius: pending ? 6 : 3,
+                textColor: pending ? .drGreen2 : .drGreen1,
+                circleColor: pending ? .drGrey7 : .drGrey6,
+                bold: pivotNote == text)
     }
 
     /// The sequence type (circle of fourths, etc.) picker

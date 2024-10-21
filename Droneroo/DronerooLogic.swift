@@ -21,6 +21,7 @@ struct Sounder {
 /// Current position in the sequence
 struct Position {
     let index: Int
+    let pivotNote: String
     let previousNote: String
     let currentNote: String
     let nextNote: String
@@ -30,13 +31,14 @@ class DronerooLogic: NSObject, ObservableObject {
     static let soundbankTypes = [UTType(filenameExtension: "sf2")!, UTType(filenameExtension: "dfs")!]
 
     @Published var isPlaying = false
-    private var position: Position = Position(index: 0, previousNote: "?", currentNote: "?", nextNote: "?")
+    private var position: Position = Position(index: 0, pivotNote: "N/A", previousNote: "?", currentNote: "?", nextNote: "?")
     private var velocity: Double = 0.8
     private let audioEngine = AVAudioEngine()
     private var sampler = AVAudioUnitSampler()
     private var noteSequence: [UInt8] = []
     private var nameSequence: [String] = []
     private var currentIndex = 0
+    private var pivotIndex: Int?
     private var currentNote: UInt8!
     private var cancellables = Set<AnyCancellable>()
     // From http://johannes.roussel.free.fr/music/soundfonts.htm
@@ -155,6 +157,7 @@ class DronerooLogic: NSObject, ObservableObject {
         currentNote = noteSequence[index]
         position = Position(
             index: index,
+            pivotNote: pivotIndex != nil ? nameSequence[pivotIndex!] : "N/A",
             previousNote: nameSequence[modSeq(index - 1)],
             currentNote: nameSequence[index],
             nextNote: nameSequence[modSeq(index + 1)])
@@ -168,11 +171,14 @@ class DronerooLogic: NSObject, ObservableObject {
     }
 
     /// Pause/Play.
+    /// This is the user command, and shouldn't be called internally.
     func toggleDrone() {
         if isPlaying {
             stopDrone()
+            pivotIndex = nil
         } else {
             startDrone()
+            pivotIndex = currentIndex
         }
     }
 
