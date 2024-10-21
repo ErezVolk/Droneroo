@@ -67,7 +67,7 @@ struct DronerooView: View {
             .onAppear { reapplySavedState() }
             .onChange(of: selectedSequence) { loadSequence() }
             .onChange(of: toToggleDrone) {
-                if toToggleDrone { logic.toggleDrone() }
+                if toToggleDrone { updatePosition(logic.toggleDrone()) }
                 toToggleDrone = false
             }
             .onChange(of: toChangeNote) {

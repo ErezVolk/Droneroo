@@ -134,8 +134,12 @@ class DronerooLogic: NSObject, ObservableObject {
     }
 
     /// Start playing.
-    private func startDrone() {
+    private func startDrone(setPivot: Bool = false) {
         guard !isPlaying else { return }
+        if setPivot {
+            pivotIndex = currentIndex
+            setPosition(currentIndex)
+        }
         let velocity = UInt8(self.velocity * 127)
         sampler.startNote(currentNote, withVelocity: velocity, onChannel: 0)
         sampler.startNote(currentNote + 12, withVelocity: velocity, onChannel: 0)
@@ -143,11 +147,15 @@ class DronerooLogic: NSObject, ObservableObject {
     }
 
     /// Stop playing.
-    private func stopDrone() {
+    private func stopDrone(clearPivot: Bool = false) {
         guard isPlaying else { return }
         sampler.stopNote(currentNote, onChannel: 0)
         sampler.stopNote(currentNote + 12, onChannel: 0)
         setIsPlaying(false)
+        if clearPivot {
+            pivotIndex = nil
+            setPosition(currentIndex)
+        }
     }
 
     /// Set current note for playback and display (and profit).
@@ -172,14 +180,13 @@ class DronerooLogic: NSObject, ObservableObject {
 
     /// Pause/Play.
     /// This is the user command, and shouldn't be called internally.
-    func toggleDrone() {
+    func toggleDrone() -> Position {
         if isPlaying {
-            stopDrone()
-            pivotIndex = nil
+            stopDrone(clearPivot: true)
         } else {
-            startDrone()
-            pivotIndex = currentIndex
+            startDrone(setPivot: true)
         }
+        return position
     }
 
     /// Update the current note, based on `delta` and `sequenceOrder`
