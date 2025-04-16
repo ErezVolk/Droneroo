@@ -1,6 +1,7 @@
 // Created by Erez Volk.
 
 import Foundation
+import AudioKit
 import AVFoundation
 import SwiftUI
 import Combine
@@ -28,21 +29,25 @@ struct Position {
 }
 
 class DronerooLogic: NSObject, ObservableObject {
-    static let soundbankTypes = [UTType(filenameExtension: "sf2")!, UTType(filenameExtension: "dfs")!]
+    static let soundbankTypes = [UTType(filenameExtension: "sf2")!, UTType(filenameExtension: "dls")!]
 
     @Published var isPlaying = false
     private var position: Position = Position(index: 0, pivotNote: "N/A", previousNote: "?", currentNote: "?", nextNote: "?")
     private var velocity: Double = 0.8
-    private let audioEngine = AVAudioEngine()
-    private var sampler = AVAudioUnitSampler()
+
+    private let engine = AudioEngine()
+    private var sampler = MIDISampler()
+    private var mixer = Mixer()
+
     private var noteSequence: [UInt8] = []
     private var nameSequence: [String] = []
     private var currentIndex = 0
     private var pivotIndex: Int?
     private var currentNote: UInt8!
     private var cancellables = Set<AnyCancellable>()
-    // From http://johannes.roussel.free.fr/music/soundfonts.htm
-    private let bundledInstrument = Bundle.main.url(forResource: "JR_String2", withExtension: "sf2")!
+    
+    private let systemDLS = URL(fileURLWithPath: "/System/Library/Components/CoreAudio.component/Contents/Resources/gs_instruments.dls")
+    private let generalMidiStrings1 = 48
     private let caffeine = Caffeine()
 
     override init() {
@@ -52,10 +57,11 @@ class DronerooLogic: NSObject, ObservableObject {
     }
 
     private func setupAudioEngine() {
-        connectSampler()
+        mixer.addInput(sampler)
+        engine.output = mixer
 
         do {
-            try audioEngine.start()
+            try engine.start()
         } catch {
             print("Audio Engine couldn't start: \(error.localizedDescription)")
         }
@@ -72,7 +78,7 @@ class DronerooLogic: NSObject, ObservableObject {
     }
 
     func setVolume(_ volume: Double) {
-        audioEngine.mainMixerNode.outputVolume = Float(volume)
+        mixer.volume = AUValue(volume)
     }
 
     func setVelocity(_ velocity: Double) {
@@ -88,20 +94,15 @@ class DronerooLogic: NSObject, ObservableObject {
     /// Recreate sampler object, resetting to beep
     private func newSampler() -> Sounder? {
         assert(!isPlaying)
-        audioEngine.detach(sampler)
-        sampler = AVAudioUnitSampler()
-        connectSampler()
+        sampler = MIDISampler()
+        mixer.removeAllInputs()
+        mixer.addInput(sampler)
         return nil
     }
 
-    private func connectSampler() {
-        audioEngine.attach(sampler)
-        audioEngine.connect(sampler, to: audioEngine.mainMixerNode, format: nil)
-    }
-
     /// Load the bundled instrument
-    func loadBundledInstrument() -> Sounder? {
-        return loadInstrument(bundledInstrument)
+    func loadDefaultInstrument() -> Sounder? {
+        return loadInstrument(systemDLS, program: generalMidiStrings1)
     }
 
     /// Load instrument from a soundbank
@@ -118,15 +119,12 @@ class DronerooLogic: NSObject, ObservableObject {
     /// On failure, leaves them untouched (caller deals with it)
     private func doLoadInstrument(soundbank: URL, program: Int) -> Sounder? {
         do {
-            try sampler.loadSoundBankInstrument(
-                at: soundbank,
-                program: UInt8(program),
-                bankMSB: UInt8(kAUSampler_DefaultMelodicBankMSB),
-                bankLSB: UInt8(kAUSampler_DefaultBankLSB))
+            let path = soundbank.deletingPathExtension().path
+            try sampler.loadSoundFont(path, preset: program, bank: 0)
 
             // Loading a new instrument can disable sound, so flip off and on after a short delay
             DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) { self.blink() }
-            return Sounder(soundbank: soundbank, program: Int(program))
+            return Sounder(soundbank: soundbank, program: program)
         } catch {
             print("Couldn't load instrument: \(error.localizedDescription)")
             return nil
@@ -141,16 +139,16 @@ class DronerooLogic: NSObject, ObservableObject {
             setPosition(currentIndex)
         }
         let velocity = UInt8(self.velocity * 127)
-        sampler.startNote(currentNote, withVelocity: velocity, onChannel: 0)
-        sampler.startNote(currentNote + 12, withVelocity: velocity, onChannel: 0)
+        sampler.play(noteNumber: MIDINoteNumber(currentNote), velocity: velocity, channel: 0)
+        sampler.play(noteNumber: MIDINoteNumber(currentNote + 12), velocity: velocity, channel: 0)
         setIsPlaying(true)
     }
 
     /// Stop playing.
     private func stopDrone(clearPivot: Bool = false) {
         guard isPlaying else { return }
-        sampler.stopNote(currentNote, onChannel: 0)
-        sampler.stopNote(currentNote + 12, onChannel: 0)
+        sampler.stop(noteNumber: MIDINoteNumber(currentNote), channel: 0)
+        sampler.stop(noteNumber: MIDINoteNumber(currentNote + 12), channel: 0)
         setIsPlaying(false)
         if clearPivot {
             pivotIndex = nil

@@ -196,7 +196,7 @@ struct DronerooView: View {
 
     var stringsButton: some View {
         Button(Instrument.strings.rawValue) {
-            updateSounder(logic.loadBundledInstrument())
+            updateSounder(logic.loadDefaultInstrument())
         }
     }
 
