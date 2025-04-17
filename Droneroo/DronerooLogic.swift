@@ -34,6 +34,7 @@ class DronerooLogic: NSObject, ObservableObject {
     @Published var isPlaying = false
     private var position: Position = Position(index: 0, pivotNote: "N/A", previousNote: "?", currentNote: "?", nextNote: "?")
     private var velocity: Double = 0.8
+    private var isClicking: Bool = true
 
     private let engine = AudioEngine()
     private var droneSampler = MIDISampler()
@@ -201,16 +202,24 @@ class DronerooLogic: NSObject, ObservableObject {
         caffeine.stayUp(newValue)
     }
 
+    fileprivate func startClicking() {
+        clickSequencer.rewind()
+        clickSequencer.play()
+    }
+    
+    fileprivate func stopClicking() {
+        clickSequencer.stop()
+    }
+    
     /// Pause/Play.
     /// This is the user command, and shouldn't be called internally.
     func toggleDrone() -> Position {
         if isPlaying {
             stopDrone(clearPivot: true)
-            clickSequencer.stop()
+            stopClicking()
         } else {
             startDrone(setPivot: true)
-            clickSequencer.rewind()
-            clickSequencer.play()
+            startClicking()
         }
         return position
     }
@@ -227,12 +236,17 @@ class DronerooLogic: NSObject, ObservableObject {
         return position
     }
     
-    func setBpm(_ bpm: Int) -> Void {
-        clickSequencer.setTempo(Double(bpm))
+    func setBpm(_ bpm: Double) -> Void {
+        clickSequencer.setTempo(bpm)
     }
     
     func setClickOn(_ clickOn: Bool) -> Void {
-        print("EREZ EREZ IMPLEMENT ME")
+        isClicking = clickOn
+        guard isPlaying else { return }
+        stopClicking()
+        if isClicking {
+            startClicking()
+        }
     }
 
     /// Do `action` while not playing (pause and resume if called while playing)

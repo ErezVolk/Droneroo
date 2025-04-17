@@ -3,17 +3,6 @@
 import SwiftUI
 import Combine
 
-extension NumberFormatter {
-    static var bpmFormatter: NumberFormatter {
-        let f = NumberFormatter()
-        f.minimum = 30
-        f.maximum = 300
-        f.minimumFractionDigits = 0
-        f.maximumFractionDigits = 0
-        return f
-    }
-}
-
 struct DronerooView: View {
     @StateObject private var logic = DronerooLogic()
     @AppStorage("sequence") private var selectedSequence: SequenceType = .circleOfFourth
@@ -25,7 +14,7 @@ struct DronerooView: View {
     @AppStorage("program") var program: Int = 0
     @AppStorage("index") var index: Int = 0
     @AppStorage("click") var clickOn: Bool = true
-    @AppStorage("bpm") var bpm: Int = 60
+    @AppStorage("bpm") var bpm: Double = 60
 
     // Since calling `logic` from `.onKeyPress`/`.onTap` issues errors, save them aside
     @State private var toChangeNote = 0
@@ -74,19 +63,15 @@ struct DronerooView: View {
                 }
                 
                 HStack {
-                    Toggle("Click ♩=", isOn: $clickOn)
+                    Toggle("♩=\(Int(bpm))", isOn: $clickOn)
 #if os(macOS)
                         .toggleStyle(.checkbox)
 #endif
-                    Stepper("BPM", value: $bpm, in: 30...300, step: 1)
-                        .labelsHidden()
-                    TextField("BPM", value: $bpm, formatter: NumberFormatter.bpmFormatter)
-                        .frame(width: 60)
-                        .textFieldStyle(.roundedBorder)
-#if os(iOS)
-                        .keyboardType(.numberPad)
-#endif
-                    Text("BPM")
+                    
+                    Slider(
+                        value: $bpm,
+                        in: 30...300,
+                    )
                 }
 
                 instrumentPanel
