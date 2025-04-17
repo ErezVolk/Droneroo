@@ -3,18 +3,14 @@
 import SwiftUI
 import Combine
 
-struct Config {
-    let minimumValue: CGFloat
-    let maximumValue: CGFloat
-    let totalValue: CGFloat
-    let knobRadius: CGFloat
-    let radius: CGFloat
-}
-
 struct BmpControlView: View {
     @Binding var bpm: Double
     @Binding var isOn: Bool
+    @State var knobAngleDeg: CGFloat = 0.0
+    private let minBpm: Double = 30
+    private let maxBpm: Double = 300
     private let diameter: Int = 100
+    private let knobRadius: CGFloat = 6
     
     var body: some View {
         ZStack {
@@ -28,50 +24,33 @@ struct BmpControlView: View {
                     offBackColor: .drGrey7
                 ))
                 .onTapGesture { isOn.toggle() }
-        }
-    }
-}
-
-struct TemperatureControlView: View {
-    @State var temperatureValue: CGFloat = 0.0
-    @State var angleValue: CGFloat = 0.0
-    let config = Config(minimumValue: 0.0,
-                        maximumValue: 40.0,
-                        totalValue: 40.0,
-                        knobRadius: 15.0,
-                        radius: 125.0)
-    var body: some View {
-        ZStack {
-            Circle()
-                .frame(width: config.radius * 2, height: config.radius * 2)
-                .scaleEffect(1.2)
             
             Circle()
-                .stroke(Color.gray,
-                        style: StrokeStyle(lineWidth: 3, lineCap: .butt, dash: [3, 23.18]))
-                .frame(width: config.radius * 2, height: config.radius * 2)
-            
-            Circle()
-                .trim(from: 0.0, to: temperatureValue/config.totalValue)
-                .stroke(temperatureValue < config.maximumValue/2 ? Color.blue : Color.red, lineWidth: 4)
-                .frame(width: config.radius * 2, height: config.radius * 2)
+                .trim(from: 0.0, to: (bpm - minBpm) / (maxBpm - minBpm))
+                .stroke(Color.drGrey4, lineWidth: 4)
+                .frame(width: CGFloat(diameter), height: CGFloat(diameter))
                 .rotationEffect(.degrees(-90))
             
             Circle()
-                .fill(temperatureValue < config.maximumValue/2 ? Color.blue : Color.red)
-                .frame(width: config.knobRadius * 2, height: config.knobRadius * 2)
+                .stroke(Color.drGrey4, lineWidth: 1)
+                .fill(Color.drGrey5)
+                .frame(width: knobRadius * 2, height: knobRadius * 2)
                 .padding(10)
-                .offset(y: -config.radius)
-                .rotationEffect(Angle.degrees(Double(angleValue)))
+                .offset(y: CGFloat(-diameter / 2))
+                .rotationEffect(Angle.degrees(Double(knobAngleDeg)))
                 .gesture(DragGesture(minimumDistance: 0.0)
                             .onChanged({ value in
                                 change(location: value.location)
                             }))
-            
-            Text("\(String.init(format: "%.0f", temperatureValue)) º")
-                            .font(.system(size: 60))
-                            .foregroundColor(.white)
         }
+        .onAppear {
+            placeKnob()
+        }
+    }
+    
+    private func placeKnob() {
+        let fixedAngleRad = (bpm - minBpm) / (maxBpm - minBpm) * (2.0 * .pi)
+        knobAngleDeg = fixedAngleRad * 180 / .pi
     }
     
     private func change(location: CGPoint) {
@@ -79,17 +58,23 @@ struct TemperatureControlView: View {
         let vector = CGVector(dx: location.x, dy: location.y)
         
         // geting angle in radian need to subtract the knob radius and padding from the dy and dx
-        let angle = atan2(vector.dy - (config.knobRadius + 10), vector.dx - (config.knobRadius + 10)) + .pi/2.0
+        let angleRad = atan2(vector.dy - (knobRadius + 10), vector.dx - (knobRadius + 10)) + .pi/2.0
         
         // convert angle range from (-pi to pi) to (0 to 2pi)
-        let fixedAngle = angle < 0.0 ? angle + 2.0 * .pi : angle
+        let fixedAngleRad = angleRad < 0.0 ? angleRad + 2.0 * .pi : angleRad
         // convert angle value to temperature value
-        let value = fixedAngle / (2.0 * .pi) * config.totalValue
+        let newBpm = fixedAngleRad / (2.0 * .pi) * (maxBpm - minBpm) + minBpm
+        // convert angle to degree
+        let newAngleDeg = fixedAngleRad * 180 / .pi
         
-        if value >= config.minimumValue && value <= config.maximumValue {
-            temperatureValue = value
-            angleValue = fixedAngle * 180 / .pi // converting to degree
+        if (newAngleDeg > 270 && knobAngleDeg < 90) || (newAngleDeg < 90 && knobAngleDeg > 270) {
+            return
         }
+        
+        guard newBpm >= minBpm && newBpm <= maxBpm else { return }
+        
+        bpm = newBpm
+        knobAngleDeg = newAngleDeg
     }
 }
 
@@ -146,26 +131,8 @@ struct DronerooView: View {
                         .addToTour(tour, "right", "Next note.\nTap to change to this note.")
                 }
                 
-                Button("Both", systemImage: both ? "lock" : "lock.open") {
-                    both.toggle()
-                }
+                Button("Both", systemImage: both ? "lock" : "lock.open") { both.toggle() }
                     .plainButton()
-                
-
-                Toggle("♩=\(Int(bpm))", isOn: $isClicking)
-                    .toggleStyle(EncircledToggleStyle(
-                        diameter: 80,
-                        bold: isClicking,
-                        onTextColor: .drGreen4,
-                        onBackColor: .drGrey8,
-                        offTextColor: .drGreen3,
-                        offBackColor: .drGrey7
-                    ))
-                    .onTapGesture { isClicking.toggle() }
-                Slider(
-                    value: $bpm,
-                    in: 30...300,
-                )
                 
                 BmpControlView(bpm: $bpm, isOn: $isClicking)
                 
