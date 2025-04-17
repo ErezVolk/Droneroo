@@ -36,7 +36,9 @@ class DronerooLogic: NSObject, ObservableObject {
     private var velocity: Double = 0.8
 
     private let engine = AudioEngine()
-    private var sampler = MIDISampler()
+    private var droneSampler = MIDISampler()
+    private var clickSampler = MIDISampler()
+    private let clickSequencer = AppleSequencer()
     private var mixer = Mixer()
 
     private var noteSequence: [UInt8] = []
@@ -47,7 +49,6 @@ class DronerooLogic: NSObject, ObservableObject {
     private var cancellables = Set<AnyCancellable>()
     
     private let systemDLS = URL(fileURLWithPath: "/System/Library/Components/CoreAudio.component/Contents/Resources/gs_instruments.dls")
-    private let generalMidiStrings1 = 48
     private let caffeine = Caffeine()
 
     override init() {
@@ -57,7 +58,31 @@ class DronerooLogic: NSObject, ObservableObject {
     }
 
     private func setupAudioEngine() {
-        mixer.addInput(sampler)
+        do {
+            let path = systemDLS.deletingPathExtension().path
+            try clickSampler.loadPercussiveSoundFont(path, preset: 0)
+            
+            let track = clickSequencer.newTrack()
+            track?.setMIDIOutput(clickSampler.midiIn)
+
+            for idx in 0..<4 {
+                let beat = Double(idx)
+                track?.add(noteNumber: 56, // Cowbell (or try 76 = Hi Q)
+                           velocity: 127,
+                           position: Duration(beats: beat),
+                           duration: Duration(beats: 0.1))
+            }
+
+            clickSequencer.setTempo(60)
+            clickSequencer.enableLooping(Duration(beats: 4))
+            clickSequencer.preroll()
+
+            mixer.addInput(clickSampler)
+        } catch {
+            print("Error loading click sound: \(error)")
+        }
+
+        mixer.addInput(droneSampler)
         engine.output = mixer
 
         do {
@@ -94,15 +119,15 @@ class DronerooLogic: NSObject, ObservableObject {
     /// Recreate sampler object, resetting to beep
     private func newSampler() -> Sounder? {
         assert(!isPlaying)
-        sampler = MIDISampler()
-        mixer.removeAllInputs()
-        mixer.addInput(sampler)
+        mixer.removeInput(droneSampler)
+        droneSampler = MIDISampler()
+        mixer.addInput(droneSampler)
         return nil
     }
 
     /// Load the bundled instrument
     func loadDefaultInstrument() -> Sounder? {
-        return loadInstrument(systemDLS, program: generalMidiStrings1)
+        return loadInstrument(systemDLS, program: 48)
     }
 
     /// Load instrument from a soundbank
@@ -120,7 +145,7 @@ class DronerooLogic: NSObject, ObservableObject {
     private func doLoadInstrument(soundbank: URL, program: Int) -> Sounder? {
         do {
             let path = soundbank.deletingPathExtension().path
-            try sampler.loadSoundFont(path, preset: program, bank: 0)
+            try droneSampler.loadSoundFont(path, preset: program, bank: 0)
 
             // Loading a new instrument can disable sound, so flip off and on after a short delay
             DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) { self.blink() }
@@ -139,16 +164,16 @@ class DronerooLogic: NSObject, ObservableObject {
             setPosition(currentIndex)
         }
         let velocity = UInt8(self.velocity * 127)
-        sampler.play(noteNumber: MIDINoteNumber(currentNote), velocity: velocity, channel: 0)
-        sampler.play(noteNumber: MIDINoteNumber(currentNote + 12), velocity: velocity, channel: 0)
+        droneSampler.play(noteNumber: MIDINoteNumber(currentNote), velocity: velocity, channel: 0)
+        droneSampler.play(noteNumber: MIDINoteNumber(currentNote + 12), velocity: velocity, channel: 0)
         setIsPlaying(true)
     }
 
     /// Stop playing.
     private func stopDrone(clearPivot: Bool = false) {
         guard isPlaying else { return }
-        sampler.stop(noteNumber: MIDINoteNumber(currentNote), channel: 0)
-        sampler.stop(noteNumber: MIDINoteNumber(currentNote + 12), channel: 0)
+        droneSampler.stop(noteNumber: MIDINoteNumber(currentNote), channel: 0)
+        droneSampler.stop(noteNumber: MIDINoteNumber(currentNote + 12), channel: 0)
         setIsPlaying(false)
         if clearPivot {
             pivotIndex = nil
@@ -181,8 +206,11 @@ class DronerooLogic: NSObject, ObservableObject {
     func toggleDrone() -> Position {
         if isPlaying {
             stopDrone(clearPivot: true)
+            clickSequencer.stop()
         } else {
             startDrone(setPivot: true)
+            clickSequencer.rewind()
+            clickSequencer.play()
         }
         return position
     }
@@ -197,6 +225,14 @@ class DronerooLogic: NSObject, ObservableObject {
     func setDrone(_ index: Int) -> Position {
         blink { setPosition(modSeq(index)) }
         return position
+    }
+    
+    func setBpm(_ bpm: Int) -> Void {
+        clickSequencer.setTempo(Double(bpm))
+    }
+    
+    func setClickOn(_ clickOn: Bool) -> Void {
+        print("EREZ EREZ IMPLEMENT ME")
     }
 
     /// Do `action` while not playing (pause and resume if called while playing)
@@ -246,4 +282,5 @@ class DronerooLogic: NSObject, ObservableObject {
         let delta = match.3 != nil ? 10 : match.4 != nil ? 11 : match.5 != nil ? 2 : match.6 != nil ? 1 : 0
         return UInt8(48 + (base + delta) % 12)
     }
+
 }
