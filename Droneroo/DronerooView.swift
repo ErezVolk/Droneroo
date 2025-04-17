@@ -3,6 +3,96 @@
 import SwiftUI
 import Combine
 
+struct Config {
+    let minimumValue: CGFloat
+    let maximumValue: CGFloat
+    let totalValue: CGFloat
+    let knobRadius: CGFloat
+    let radius: CGFloat
+}
+
+struct BmpControlView: View {
+    @Binding var bpm: Double
+    @Binding var isOn: Bool
+    private let diameter: Int = 100
+    
+    var body: some View {
+        ZStack {
+            Toggle("♩=\(Int(bpm))", isOn: $isOn)
+                .toggleStyle(EncircledToggleStyle(
+                    diameter: diameter,
+                    bold: isOn,
+                    onTextColor: .drGreen4,
+                    onBackColor: .drGrey8,
+                    offTextColor: .drGreen3,
+                    offBackColor: .drGrey7
+                ))
+                .onTapGesture { isOn.toggle() }
+        }
+    }
+}
+
+struct TemperatureControlView: View {
+    @State var temperatureValue: CGFloat = 0.0
+    @State var angleValue: CGFloat = 0.0
+    let config = Config(minimumValue: 0.0,
+                        maximumValue: 40.0,
+                        totalValue: 40.0,
+                        knobRadius: 15.0,
+                        radius: 125.0)
+    var body: some View {
+        ZStack {
+            Circle()
+                .frame(width: config.radius * 2, height: config.radius * 2)
+                .scaleEffect(1.2)
+            
+            Circle()
+                .stroke(Color.gray,
+                        style: StrokeStyle(lineWidth: 3, lineCap: .butt, dash: [3, 23.18]))
+                .frame(width: config.radius * 2, height: config.radius * 2)
+            
+            Circle()
+                .trim(from: 0.0, to: temperatureValue/config.totalValue)
+                .stroke(temperatureValue < config.maximumValue/2 ? Color.blue : Color.red, lineWidth: 4)
+                .frame(width: config.radius * 2, height: config.radius * 2)
+                .rotationEffect(.degrees(-90))
+            
+            Circle()
+                .fill(temperatureValue < config.maximumValue/2 ? Color.blue : Color.red)
+                .frame(width: config.knobRadius * 2, height: config.knobRadius * 2)
+                .padding(10)
+                .offset(y: -config.radius)
+                .rotationEffect(Angle.degrees(Double(angleValue)))
+                .gesture(DragGesture(minimumDistance: 0.0)
+                            .onChanged({ value in
+                                change(location: value.location)
+                            }))
+            
+            Text("\(String.init(format: "%.0f", temperatureValue)) º")
+                            .font(.system(size: 60))
+                            .foregroundColor(.white)
+        }
+    }
+    
+    private func change(location: CGPoint) {
+        // creating vector from location point
+        let vector = CGVector(dx: location.x, dy: location.y)
+        
+        // geting angle in radian need to subtract the knob radius and padding from the dy and dx
+        let angle = atan2(vector.dy - (config.knobRadius + 10), vector.dx - (config.knobRadius + 10)) + .pi/2.0
+        
+        // convert angle range from (-pi to pi) to (0 to 2pi)
+        let fixedAngle = angle < 0.0 ? angle + 2.0 * .pi : angle
+        // convert angle value to temperature value
+        let value = fixedAngle / (2.0 * .pi) * config.totalValue
+        
+        if value >= config.minimumValue && value <= config.maximumValue {
+            temperatureValue = value
+            angleValue = fixedAngle * 180 / .pi // converting to degree
+        }
+    }
+}
+
 struct DronerooView: View {
     @StateObject private var logic = DronerooLogic()
     @AppStorage("sequence") private var selectedSequence: SequenceType = .circleOfFourth
@@ -13,8 +103,9 @@ struct DronerooView: View {
     @AppStorage("soundbank") var soundbank: URL?
     @AppStorage("program") var program: Int = 0
     @AppStorage("index") var index: Int = 0
-    @AppStorage("click") var clickOn: Bool = true
+    @AppStorage("click") var isClicking: Bool = true
     @AppStorage("bpm") var bpm: Double = 60
+    @AppStorage("both") var both: Bool = true
 
     // Since calling `logic` from `.onKeyPress`/`.onTap` issues errors, save them aside
     @State private var toChangeNote = 0
@@ -38,6 +129,7 @@ struct DronerooView: View {
             identityOverlay
 
             VStack(spacing: 20) {
+
                 HStack {
                     leftButton
                         .onTapGesture { toChangeNote -= 1 }
@@ -53,7 +145,30 @@ struct DronerooView: View {
                         .onTapGesture { toChangeNote += 1 }
                         .addToTour(tour, "right", "Next note.\nTap to change to this note.")
                 }
+                
+                Button("Both", systemImage: both ? "lock" : "lock.open") {
+                    both.toggle()
+                }
+                    .plainButton()
+                
 
+                Toggle("♩=\(Int(bpm))", isOn: $isClicking)
+                    .toggleStyle(EncircledToggleStyle(
+                        diameter: 80,
+                        bold: isClicking,
+                        onTextColor: .drGreen4,
+                        onBackColor: .drGrey8,
+                        offTextColor: .drGreen3,
+                        offBackColor: .drGrey7
+                    ))
+                    .onTapGesture { isClicking.toggle() }
+                Slider(
+                    value: $bpm,
+                    in: 30...300,
+                )
+                
+                BmpControlView(bpm: $bpm, isOn: $isClicking)
+                
                 HStack {
                     signpost.hidden()  // Hack for centering
                     sequencePicker
@@ -62,25 +177,13 @@ struct DronerooView: View {
                         .addToTour(tour, "signpost", "Direction for 'next'\n(using foot pedal or ▶)")
                 }
                 
-                HStack {
-                    Toggle("♩=\(Int(bpm))", isOn: $clickOn)
-#if os(macOS)
-                        .toggleStyle(.checkbox)
-#endif
-                    
-                    Slider(
-                        value: $bpm,
-                        in: 30...300,
-                    )
-                }
-
                 instrumentPanel
                     .colorMultiply(.drGrey8)
             }
             .padding()
             .onAppear { reapplySavedState() }
             .onChange(of: selectedSequence) { loadSequence() }
-            .onChange(of: clickOn) { logic.setClickOn(clickOn) }
+            .onChange(of: isClicking) { logic.setClickOn(isClicking) }
             .onChange(of: bpm) { logic.setBpm(bpm) }
             .onChange(of: toToggleDrone) {
                 if toToggleDrone { updatePosition(logic.toggleDrone()) }
@@ -104,7 +207,7 @@ struct DronerooView: View {
         }
         loadSequence(index)
         logic.setBpm(bpm)
-        logic.setClickOn(clickOn)
+        logic.setClickOn(isClicking)
     }
 
     private func loadSequence(_ index: Int? = nil) {
