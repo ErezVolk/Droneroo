@@ -5,6 +5,7 @@ import Combine
 
 /// A View to a metronome.
 /// Based on https://medium.com/@anik1.bd_38552/swiftui-circular-slider-f713a2b28779
+/// TODO: Upside-down
 /// TODO: Add tick marks
 /// TODO: Make pretttier
 /// TODO: Leave space at top
