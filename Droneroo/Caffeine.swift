@@ -2,6 +2,7 @@
 
 import Foundation
 #if os(iOS)
+/// Prevent automatic screen lock while playing
 import UIKit
 
 class Caffeine {
@@ -12,6 +13,7 @@ class Caffeine {
 #else
 import IOKit.pwr_mgt
 
+/// Prevent automatic screen lock while playing
 class Caffeine {
     private var assertionID: IOPMAssertionID = 0
 

@@ -3,30 +3,38 @@
 import SwiftUI
 import Combine
 
+/// TODO: Redo MIDI instrument controls
+/// TODO: Control click volume/velocity
 struct DronerooView: View {
     @StateObject private var logic = DronerooLogic()
-    @AppStorage("sequence") private var selectedSequence: SequenceType = .circleOfFourth
+    
+    @AppStorage("series") private var selectedSeries: SeriesType = .circleOfFourth
+    
     /// How much to add to the current note index when the right arrow key is pressed ("forward")
     @AppStorage("direction") private var direction = 1
-    @AppStorage("volume") var volume: Double = 1.0
-    @AppStorage("velocity") var velocity: Double = 0.8
+    @AppStorage("volume") var volume = 1.0
+    @AppStorage("velocity") var velocity = 0.8
     @AppStorage("soundbank") var soundbank: URL?
-    @AppStorage("program") var program: Int = 0
-    @AppStorage("index") var index: Int = 0
+    @AppStorage("program") var program = 0
+    @AppStorage("index") var index = 0
+    @AppStorage("bpm") var bpm = 60.00
+    @AppStorage("linked") var isLinked = true
 
     // Since calling `logic` from `.onKeyPress`/`.onTap` issues errors, save them aside
-    @State private var toChangeNote = 0
-    @State private var toToggleDrone = false
+    @State private var pendingDroneChange = 0
 
-    @State var currentNote: String = "?"
-    @State var previousNote: String = "?"
-    @State var nextNote: String = "?"
-    @State var pivotNote: String = "?"
+    @State var isDroning = false
+    @State var isTicking = false
+    @State var currentNote = "?"
+    @State var previousNote = "?"
+    @State var nextNote = "?"
+    @State var pivotNote = "?"
     @FocusState private var haveKeyboardFocus: Bool
-    private let mainTourStops = ["middle", "right", "sequence", "signpost"]
+    
+    private let mainTourStops = ["middle", "right", "series", "signpost"]
     private let audioTourStops = ["soundbank", "program", "velocity"]
     private let postAudioTourStops = ["reset"]
-    private let soundBankTourText = "Choose a soundbank file."
+    private let soundBankTourText = "Choose a soundbank file"
     private var tour: Tour
     private var audioTour: Tour
 
@@ -36,43 +44,57 @@ struct DronerooView: View {
             identityOverlay
 
             VStack(spacing: 20) {
+
                 HStack {
                     leftButton
-                        .onTapGesture { toChangeNote -= 1 }
+                        .onTapGesture { pendingDroneChange -= 1 }
 
                     middleButton
-                        .handleKey(.leftArrow) { toChangeNote -= direction }
-                        .handleKey(.rightArrow) { toChangeNote += direction }
-                        .handleKey(.space) { toToggleDrone.toggle() }
-                        .onTapGesture { toToggleDrone.toggle() }
+                        .handleKey(.leftArrow) { pendingDroneChange -= direction }
+                        .handleKey(.rightArrow) { pendingDroneChange += direction }
+                        .handleKey(.space) { isDroning.toggle() }
+                        .onTapGesture { isDroning.toggle() }
                         .addToTour(tour, "middle", "Current note.\nTap to start/stop drone.")
 
                     rightButton
-                        .onTapGesture { toChangeNote += 1 }
+                        .onTapGesture { pendingDroneChange += 1 }
                         .addToTour(tour, "right", "Next note.\nTap to change to this note.")
                 }
-
+                
+                Button("Linked", systemImage: isLinked ? "lock" : "lock.open") { isLinked.toggle() }
+                    .imageScale(.large)
+                    .plainButton()
+                
+                BpmControlView(bpm: $bpm, isOn: $isTicking)
+                
                 HStack {
                     signpost.hidden()  // Hack for centering
-                    sequencePicker
-                        .addToTour(tour, "sequence", "Sequence of drone notes.")
+                    seriesPicker
+                        .addToTour(tour, "series", "Series of drone notes.")
                     signpost
                         .addToTour(tour, "signpost", "Direction for 'next'\n(using foot pedal or ▶)")
                 }
-
+                
                 instrumentPanel
                     .colorMultiply(.drGrey8)
             }
             .padding()
             .onAppear { reapplySavedState() }
-            .onChange(of: selectedSequence) { loadSequence() }
-            .onChange(of: toToggleDrone) {
-                if toToggleDrone { updatePosition(logic.toggleDrone()) }
-                toToggleDrone = false
+            .onChange(of: selectedSeries) { loadSeries() }
+            .onChange(of: bpm) { logic.setBpm(bpm) }
+            .onChange(of: isDroning) {
+                updateState(newDroning: isDroning, newTicking: isLinked ? isDroning : isTicking)
             }
-            .onChange(of: toChangeNote) {
-                if toChangeNote != 0 { updatePosition(logic.changeDrone(toChangeNote)) }
-                toChangeNote = 0
+            .onChange(of: isTicking) {
+                updateState(newDroning: isLinked ? isTicking : isDroning, newTicking: isTicking)
+            }
+            .onChange(of: isLinked) {
+                guard isLinked && (isDroning || isTicking) else { return }
+                updateState(newDroning: true, newTicking: true)
+            }
+            .onChange(of: pendingDroneChange) {
+                if pendingDroneChange != 0 { updatePosition(logic.changeDrone(pendingDroneChange)) }
+                pendingDroneChange = 0
             }
         }
     }
@@ -86,11 +108,19 @@ struct DronerooView: View {
         } else {
             updateSounder(logic.loadBeep())
         }
-        loadSequence(index)
+        loadSeries(index)
+        logic.setBpm(bpm)
+    }
+    
+    private func updateState(newDroning: Bool, newTicking: Bool) -> Void {
+        isDroning = newDroning
+        isTicking = newTicking
+        logic.setIsTicking(isTicking)
+        logic.setIsDroning(isDroning)
     }
 
-    private func loadSequence(_ index: Int? = nil) {
-        updatePosition(logic.loadSequence(selectedSequence, index))
+    private func loadSeries(_ index: Int? = nil) {
+        updatePosition(logic.loadSeries(selectedSeries, index))
     }
 
     private func updatePosition(_ position: Position) {
@@ -103,7 +133,7 @@ struct DronerooView: View {
 
     /// The "current tone" circle and keyboard event receiver
     var middleButton: some View {
-        Toggle(currentNote, isOn: $logic.isPlaying)
+        Toggle(currentNote, isOn: $isDroning)
             .focusable()
             .focused($haveKeyboardFocus)
             .onAppear { haveKeyboardFocus = true }
@@ -135,15 +165,15 @@ struct DronerooView: View {
                 bold: pivotNote == text)
     }
 
-    /// The sequence type (circle of fourths, etc.) picker
-    var sequencePicker: some View {
-        Picker("", selection: $selectedSequence) {
-            ForEach(SequenceType.allCases) { sequence in
-                Text(sequence.rawValue).tag(sequence)
+    /// The series type (circle of fourths, etc.) picker
+    var seriesPicker: some View {
+        Picker("", selection: $selectedSeries) {
+            ForEach(SeriesType.allCases) { series in
+                Text(series.rawValue).tag(series)
             }
         }
-        .pickerStyle(sequencePickerStyle)
-        .colorMultiply(sequencePickerTint)
+        .pickerStyle(seriesPickerStyle)
+        .colorMultiply(seriesPickerTint)
         .fixedSize()
     }
 
@@ -266,8 +296,8 @@ struct DronerooView: View {
     }
 
 #if os(macOS)
-    private let sequencePickerStyle = SegmentedPickerStyle()
-    private let sequencePickerTint = Color.drGrey8
+    private let seriesPickerStyle = SegmentedPickerStyle()
+    private let seriesPickerTint = Color.drGrey8
 
     init() {
         tour = Tour(mainTourStops + audioTourStops + postAudioTourStops)
@@ -309,8 +339,8 @@ struct DronerooView: View {
 #else
     @State private var isSoundbankPickerPresented = false
     @State private var isAudioSheetPresented = false
-    private let sequencePickerStyle = DefaultPickerStyle()
-    private let sequencePickerTint = Color.drGreen2
+    private let seriesPickerStyle = DefaultPickerStyle()
+    private let seriesPickerTint = Color.drGreen2
 
     init() {
         tour = Tour(mainTourStops + ["audio"] + postAudioTourStops)
