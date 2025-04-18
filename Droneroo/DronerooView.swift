@@ -3,84 +3,11 @@
 import SwiftUI
 import Combine
 
-struct BmpControlView: View {
-    @Binding var bpm: Double
-    @Binding var isOn: Bool
-    @State var knobAngleDeg: CGFloat = 0.0
-    private let minBpm: Double = 30
-    private let maxBpm: Double = 300
-    private let diameter: Int = 100
-    private let knobRadius: CGFloat = 6
-    
-    var body: some View {
-        ZStack {
-            Toggle("♩=\(Int(bpm))", isOn: $isOn)
-                .toggleStyle(EncircledToggleStyle(
-                    diameter: diameter,
-                    bold: isOn,
-                    onTextColor: .drGreen4,
-                    onBackColor: .drGrey8,
-                    offTextColor: .drGreen3,
-                    offBackColor: .drGrey7
-                ))
-                .onTapGesture { isOn.toggle() }
-            
-            Circle()
-                .trim(from: 0.0, to: (bpm - minBpm) / (maxBpm - minBpm))
-                .stroke(Color.drGrey4, lineWidth: 4)
-                .frame(width: CGFloat(diameter), height: CGFloat(diameter))
-                .rotationEffect(.degrees(-90))
-            
-            Circle()
-                .stroke(Color.drGrey4, lineWidth: 1)
-                .fill(Color.drGrey5)
-                .frame(width: knobRadius * 2, height: knobRadius * 2)
-                .padding(10)
-                .offset(y: CGFloat(-diameter / 2))
-                .rotationEffect(Angle.degrees(Double(knobAngleDeg)))
-                .gesture(DragGesture(minimumDistance: 0.0)
-                            .onChanged({ value in
-                                change(location: value.location)
-                            }))
-        }
-        .onAppear {
-            placeKnob()
-        }
-    }
-    
-    private func placeKnob() {
-        let fixedAngleRad = (bpm - minBpm) / (maxBpm - minBpm) * (2.0 * .pi)
-        knobAngleDeg = fixedAngleRad * 180 / .pi
-    }
-    
-    private func change(location: CGPoint) {
-        // creating vector from location point
-        let vector = CGVector(dx: location.x, dy: location.y)
-        
-        // geting angle in radian need to subtract the knob radius and padding from the dy and dx
-        let angleRad = atan2(vector.dy - (knobRadius + 10), vector.dx - (knobRadius + 10)) + .pi/2.0
-        
-        // convert angle range from (-pi to pi) to (0 to 2pi)
-        let fixedAngleRad = angleRad < 0.0 ? angleRad + 2.0 * .pi : angleRad
-        // convert angle value to temperature value
-        let newBpm = fixedAngleRad / (2.0 * .pi) * (maxBpm - minBpm) + minBpm
-        // convert angle to degree
-        let newAngleDeg = fixedAngleRad * 180 / .pi
-        
-        if (newAngleDeg > 270 && knobAngleDeg < 90) || (newAngleDeg < 90 && knobAngleDeg > 270) {
-            return
-        }
-        
-        guard newBpm >= minBpm && newBpm <= maxBpm else { return }
-        
-        bpm = newBpm
-        knobAngleDeg = newAngleDeg
-    }
-}
-
 struct DronerooView: View {
     @StateObject private var logic = DronerooLogic()
-    @AppStorage("sequence") private var selectedSequence: SequenceType = .circleOfFourth
+    
+    @AppStorage("series") private var selectedSeries: SeriesType = .circleOfFourth
+    
     /// How much to add to the current note index when the right arrow key is pressed ("forward")
     @AppStorage("direction") private var direction = 1
     @AppStorage("volume") var volume: Double = 1.0
@@ -101,7 +28,7 @@ struct DronerooView: View {
     @State var nextNote: String = "?"
     @State var pivotNote: String = "?"
     @FocusState private var haveKeyboardFocus: Bool
-    private let mainTourStops = ["middle", "right", "sequence", "signpost"]
+    private let mainTourStops = ["middle", "right", "series", "signpost"]
     private let audioTourStops = ["soundbank", "program", "velocity"]
     private let postAudioTourStops = ["reset"]
     private let soundBankTourText = "Choose a soundbank file."
@@ -138,8 +65,8 @@ struct DronerooView: View {
                 
                 HStack {
                     signpost.hidden()  // Hack for centering
-                    sequencePicker
-                        .addToTour(tour, "sequence", "Sequence of drone notes.")
+                    seriesPicker
+                        .addToTour(tour, "series", "Series of drone notes.")
                     signpost
                         .addToTour(tour, "signpost", "Direction for 'next'\n(using foot pedal or ▶)")
                 }
@@ -149,7 +76,7 @@ struct DronerooView: View {
             }
             .padding()
             .onAppear { reapplySavedState() }
-            .onChange(of: selectedSequence) { loadSequence() }
+            .onChange(of: selectedSeries) { loadSeries() }
             .onChange(of: isClicking) { logic.setClickOn(isClicking) }
             .onChange(of: bpm) { logic.setBpm(bpm) }
             .onChange(of: toToggleDrone) {
@@ -172,13 +99,13 @@ struct DronerooView: View {
         } else {
             updateSounder(logic.loadBeep())
         }
-        loadSequence(index)
+        loadSeries(index)
         logic.setBpm(bpm)
         logic.setClickOn(isClicking)
     }
 
-    private func loadSequence(_ index: Int? = nil) {
-        updatePosition(logic.loadSequence(selectedSequence, index))
+    private func loadSeries(_ index: Int? = nil) {
+        updatePosition(logic.loadSeries(selectedSeries, index))
     }
 
     private func updatePosition(_ position: Position) {
@@ -223,15 +150,15 @@ struct DronerooView: View {
                 bold: pivotNote == text)
     }
 
-    /// The sequence type (circle of fourths, etc.) picker
-    var sequencePicker: some View {
-        Picker("", selection: $selectedSequence) {
-            ForEach(SequenceType.allCases) { sequence in
-                Text(sequence.rawValue).tag(sequence)
+    /// The series type (circle of fourths, etc.) picker
+    var seriesPicker: some View {
+        Picker("", selection: $selectedSeries) {
+            ForEach(SeriesType.allCases) { series in
+                Text(series.rawValue).tag(series)
             }
         }
-        .pickerStyle(sequencePickerStyle)
-        .colorMultiply(sequencePickerTint)
+        .pickerStyle(seriesPickerStyle)
+        .colorMultiply(seriesPickerTint)
         .fixedSize()
     }
 
@@ -354,8 +281,8 @@ struct DronerooView: View {
     }
 
 #if os(macOS)
-    private let sequencePickerStyle = SegmentedPickerStyle()
-    private let sequencePickerTint = Color.drGrey8
+    private let seriesPickerStyle = SegmentedPickerStyle()
+    private let seriesPickerTint = Color.drGrey8
 
     init() {
         tour = Tour(mainTourStops + audioTourStops + postAudioTourStops)
@@ -397,8 +324,8 @@ struct DronerooView: View {
 #else
     @State private var isSoundbankPickerPresented = false
     @State private var isAudioSheetPresented = false
-    private let sequencePickerStyle = DefaultPickerStyle()
-    private let sequencePickerTint = Color.drGreen2
+    private let seriesPickerStyle = DefaultPickerStyle()
+    private let seriesPickerTint = Color.drGreen2
 
     init() {
         tour = Tour(mainTourStops + ["audio"] + postAudioTourStops)

@@ -6,7 +6,7 @@ import AVFoundation
 import SwiftUI
 import Combine
 
-enum SequenceType: String, CaseIterable, Identifiable {
+enum SeriesType: String, CaseIterable, Identifiable {
     case circleOfFourth = "Circle of Fourths"
     case rayBrown = "Flats, then Sharps"
     case chromatic = "Chromatic"
@@ -19,7 +19,7 @@ struct Sounder {
     let program: Int
 }
 
-/// Current position in the sequence
+/// Current position in the series
 struct Position {
     let index: Int
     let pivotNote: String
@@ -42,8 +42,8 @@ class DronerooLogic: NSObject, ObservableObject {
     private let clickSequencer = AppleSequencer()
     private var mixer = Mixer()
 
-    private var noteSequence: [UInt8] = []
-    private var nameSequence: [String] = []
+    private var noteSeries: [UInt8] = []
+    private var nameSeries: [String] = []
     private var currentIndex = 0
     private var pivotIndex: Int?
     private var currentNote: UInt8!
@@ -55,7 +55,7 @@ class DronerooLogic: NSObject, ObservableObject {
     override init() {
         super.init()
         setupAudioEngine()
-        _ = loadSequence(.circleOfFourth)
+        _ = loadSeries(.circleOfFourth)
     }
 
     private func setupAudioEngine() {
@@ -186,13 +186,13 @@ class DronerooLogic: NSObject, ObservableObject {
     private func setPosition(_ index: Int) {
         assert(!isPlaying)
         currentIndex = modSeq(index)
-        currentNote = noteSequence[index]
+        currentNote = noteSeries[index]
         position = Position(
             index: index,
-            pivotNote: pivotIndex != nil ? nameSequence[pivotIndex!] : "N/A",
-            previousNote: nameSequence[modSeq(index - 1)],
-            currentNote: nameSequence[index],
-            nextNote: nameSequence[modSeq(index + 1)])
+            pivotNote: pivotIndex != nil ? nameSeries[pivotIndex!] : "N/A",
+            previousNote: nameSeries[modSeq(index - 1)],
+            currentNote: nameSeries[index],
+            nextNote: nameSeries[modSeq(index + 1)])
     }
 
     /// Set the `isPlaying` flag, and also try to disable screen sleeping
@@ -224,13 +224,13 @@ class DronerooLogic: NSObject, ObservableObject {
         return position
     }
 
-    /// Update the current note, based on `delta` and `sequenceOrder`
+    /// Update the current note, based on `delta` and `seriesOrder`
     func changeDrone(_ delta: Int) -> Position {
         blink { setPosition(modSeq(currentIndex + delta)) }
         return position
     }
 
-    /// Set specific drone by index in current sequence
+    /// Set specific drone by index in current series
     func setDrone(_ index: Int) -> Position {
         blink { setPosition(modSeq(index)) }
         return position
@@ -265,28 +265,28 @@ class DronerooLogic: NSObject, ObservableObject {
         blink { _ in action() }
     }
 
-    /// Configure the actual sequence of notes, based on `sequenceType`.
-    func loadSequence(_ sequenceType: SequenceType, _ index: Int? = nil) -> Position {
+    /// Configure the actual series of notes, based on `seriesType`.
+    func loadSeries(_ seriesType: SeriesType, _ index: Int? = nil) -> Position {
         blink {
-            switch sequenceType {
+            switch seriesType {
             case .circleOfFourth:
-                nameSequence = ["C", "F", "A♯/B♭", "D♯/E♭", "G♯/A♭", "C♯/D♭", "F♯/G♭", "B", "E", "A", "D", "G"]
+                nameSeries = ["C", "F", "A♯/B♭", "D♯/E♭", "G♯/A♭", "C♯/D♭", "F♯/G♭", "B", "E", "A", "D", "G"]
             case .rayBrown:
-                nameSequence = ["C", "F", "B♭", "E♭", "A♭", "D♭", "G", "D", "A", "E", "B", "F♯"]
+                nameSeries = ["C", "F", "B♭", "E♭", "A♭", "D♭", "G", "D", "A", "E", "B", "F♯"]
             case .chromatic:
-                nameSequence = ["C", "C♯/D♭", "D", "D♯/E♭", "E", "F", "F♯/G♭", "G", "G♯/A♭", "A", "A♯/B♭", "B"]
+                nameSeries = ["C", "C♯/D♭", "D", "D♯/E♭", "E", "F", "F♯/G♭", "G", "G♯/A♭", "A", "A♯/B♭", "B"]
             }
-            noteSequence = nameSequence.map(DronerooLogic.noteNameToMidiNumber)
+            noteSeries = nameSeries.map(DronerooLogic.noteNameToMidiNumber)
             setPosition(index ?? 0)
         }
         return position
     }
 
-    /// "Modulu (current) Sequence"
+    /// "Modulu (current) Series"
     private func modSeq(_ index: Int) -> Int {
         var idx = index
-        while idx < 0 { idx += noteSequence.count }
-        return idx % noteSequence.count
+        while idx < 0 { idx += noteSeries.count }
+        return idx % noteSeries.count
     }
 
     /// Converts a string like "C#" to a MIDI note number in octave 2 (C2...B2)
