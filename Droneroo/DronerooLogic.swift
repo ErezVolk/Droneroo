@@ -117,7 +117,7 @@ class DronerooLogic: NSObject, ObservableObject {
 
     /// Load the bundled instrument
     func loadDefaultInstrument() -> Sounder? {
-        return loadInstrument(bundledDrone, program: 48)
+        return loadInstrument(bundledDrone)
     }
 
     /// Load instrument from a soundbank
