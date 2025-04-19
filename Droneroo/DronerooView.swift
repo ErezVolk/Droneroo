@@ -44,28 +44,28 @@ struct DronerooView: View {
             identityOverlay
 
             VStack(spacing: 20) {
-
-                HStack {
-                    leftButton
-                        .onTapGesture { pendingDroneChange -= 1 }
-
-                    middleButton
-                        .handleKey(.leftArrow) { pendingDroneChange -= direction }
-                        .handleKey(.rightArrow) { pendingDroneChange += direction }
-                        .handleKey(.space) { isDroning.toggle() }
-                        .onTapGesture { isDroning.toggle() }
-                        .addToTour(tour, "middle", "Current note.\nTap to start/stop drone.")
-
-                    rightButton
-                        .onTapGesture { pendingDroneChange += 1 }
-                        .addToTour(tour, "right", "Next note.\nTap to change to this note.")
+                
+                VStack(spacing: 10) { // Smaller spacing between drone and metronome controls
+                    HStack {
+                        leftButton
+                            .onTapGesture { pendingDroneChange -= 1 }
+                        
+                        middleButton
+                            .handleKey(.leftArrow) { pendingDroneChange -= direction }
+                            .handleKey(.rightArrow) { pendingDroneChange += direction }
+                            .handleKey(.space) { isDroning.toggle() }
+                            .onTapGesture { isDroning.toggle() }
+                            .addToTour(tour, "middle", "Current note.\nTap to start/stop drone.")
+                        
+                        rightButton
+                            .onTapGesture { pendingDroneChange += 1 }
+                            .addToTour(tour, "right", "Next note.\nTap to change to this note.")
+                    }
+                    
+                    linkedButton
+                    
+                    BpmControlView(bpm: $bpm, isOn: $isTicking)
                 }
-                
-                Button("Linked", systemImage: isLinked ? "lock" : "lock.open") { isLinked.toggle() }
-                    .imageScale(.large)
-                    .plainButton()
-                
-                BpmControlView(bpm: $bpm, isOn: $isTicking)
                 
                 HStack {
                     signpost.hidden()  // Hack for centering
@@ -129,6 +129,13 @@ struct DronerooView: View {
         currentNote = position.currentNote
         previousNote = position.previousNote
         nextNote = position.nextNote
+    }
+    
+    /// The "drone and metronome link" button
+    var linkedButton: some View {
+        Button("Linked", systemImage: isLinked ? "lock" : "lock.open") { isLinked.toggle() }
+            .imageScale(.large)
+            .plainButton()
     }
 
     /// The "current tone" circle and keyboard event receiver
