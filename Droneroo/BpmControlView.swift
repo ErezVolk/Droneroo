@@ -25,6 +25,9 @@ struct BpmControlView: View {
     
     var body: some View {
         HStack {
+            Button("Half", systemImage: "divide.circle") { bpmToKnob(factor: 0.5) }
+                .imageScale(.large)
+                .plainButton()
             Button("Slower", systemImage: "minus.circle") { bpmToKnob(-1) }
                 .imageScale(.large)
                 .plainButton()
@@ -63,14 +66,17 @@ struct BpmControlView: View {
             Button("Faster", systemImage: "plus.circle") { bpmToKnob(1) }
                 .imageScale(.large)
                 .plainButton()
-        }
+            Button("Double", systemImage: "multiply.circle") { bpmToKnob(factor: 2) }
+                .imageScale(.large)
+                .plainButton()        }
         .onAppear {
             bpmToKnob()
         }
     }
 
-    private func bpmToKnob(_ delta: Double = 0) {
-        bpm = min(max(bpm + delta, minBpm), maxBpm)
+    private func bpmToKnob(_ delta: Double = 0, factor: Double = 1) {
+        let newBpm = (bpm * factor) + delta
+        bpm = min(max(newBpm.rounded(), minBpm), maxBpm)
         knobAngleDeg = (bpm - minBpm) / (maxBpm - minBpm) * 360.0
     }
     
