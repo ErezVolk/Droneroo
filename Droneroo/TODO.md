@@ -1,5 +1,7 @@
 #  TODO List
 
+- https://developer.apple.com/documentation/Xcode/creating-your-app-icon-using-icon-composer
+- Kotlin multiplatform? Flutter? boden.io?
 - Tempo bookmarks
 - Timer (wall/drone)
 - Look for something less exposed than UserDefaults (`@SceneStorage` isn't persistent enough for me [or is it?])
