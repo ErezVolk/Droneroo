@@ -16,6 +16,14 @@ struct BpmControlView: View {
     @State var knobAngleDeg: CGFloat = 0.0
     private let minBpm: Double = 30
     private let maxBpm: Double = 300
+    private let standardBpms: [Double] = [
+        // https://en.wikipedia.org/wiki/Metronome#Usage
+        40, 42, 44, 46, 48, 50, 52, 54, 56, 58, 60,
+        63, 66, 69, 72,
+        76, 80, 84, 88, 92, 96, 100, 104, 108, 112, 116, 120,
+        126, 132, 138, 144,
+        152, 160, 168, 176, 184, 192, 200, 208,
+    ]
     private let diameter: Int = 100
 #if os(iOS)
     private let knobRadius: CGFloat = 12
@@ -25,12 +33,20 @@ struct BpmControlView: View {
     
     var body: some View {
         HStack {
-            Button("Half", systemImage: "divide.circle") { bpmToKnob(factor: 0.5) }
-                .imageScale(.large)
-                .plainButton()
-            Button("Slower", systemImage: "minus.circle") { bpmToKnob(-1) }
-                .imageScale(.large)
-                .plainButton()
+            HStack {
+                Button("Previous", systemImage: "chevron.left.circle") { prevStandardBpm() }
+                    .imageScale(.large)
+                    .plainButton()
+                    .disabled(bpm <= standardBpms.first!)
+                Button("Half", systemImage: "divide.circle") { bpmToKnob(factor: 0.5) }
+                    .imageScale(.large)
+                    .plainButton()
+                    .disabled(bpm <= minBpm)
+                Button("Slower", systemImage: "minus.circle") { bpmToKnob(-1) }
+                    .imageScale(.large)
+                    .plainButton()
+                    .disabled(bpm <= minBpm)
+            }
             
             ZStack {
                 Toggle("♩=\(Int(bpm))", isOn: $isOn)
@@ -63,14 +79,37 @@ struct BpmControlView: View {
                         }))
             }
             
-            Button("Faster", systemImage: "plus.circle") { bpmToKnob(1) }
-                .imageScale(.large)
-                .plainButton()
-            Button("Double", systemImage: "multiply.circle") { bpmToKnob(factor: 2) }
-                .imageScale(.large)
-                .plainButton()        }
+            HStack {
+                Button("Faster", systemImage: "plus.circle") { bpmToKnob(1) }
+                    .imageScale(.large)
+                    .plainButton()
+                    .disabled(bpm >= maxBpm)
+                Button("Double", systemImage: "multiply.circle") { bpmToKnob(factor: 2) }
+                    .imageScale(.large)
+                    .plainButton()
+                    .disabled(bpm >= maxBpm)
+                Button("Next", systemImage: "chevron.right.circle") { nextStandardBpm() }
+                    .imageScale(.large)
+                    .plainButton()
+                    .disabled(bpm >= standardBpms.last!)
+            }
+        }
         .onAppear {
             bpmToKnob()
+        }
+    }
+    
+    private func prevStandardBpm() {
+        if let nextBpm = standardBpms.last(where: { $0 < bpm }) {
+            bpm = nextBpm;
+            bpmToKnob();
+        }
+    }
+    
+    private func nextStandardBpm() {
+        if let nextBpm = standardBpms.first(where: { $0 > bpm }) {
+            bpm = nextBpm;
+            bpmToKnob();
         }
     }
 
