@@ -4,12 +4,12 @@
     {
       "layers" : [
         {
-          "image-name" : "3.2 – layer.svg",
-          "name" : "3.2 – layer"
+          "image-name" : "3.2 – layer 2.svg",
+          "name" : "3.2 – layer 2"
         },
         {
-          "image-name" : "2.1 – layer.svg",
-          "name" : "2.1 – layer"
+          "image-name" : "2.1 – layer 2.svg",
+          "name" : "2.1 – layer 2"
         }
       ],
       "shadow" : {

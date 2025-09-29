@@ -2,7 +2,7 @@
 
 <h1>Droneroo</h2>
 
-![Droneroo](Droneroo/Assets.xcassets/AppIcon.appiconset/Droneroo-512.png)
+![Droneroo](Droneroo.png)
 
 </div>
 
