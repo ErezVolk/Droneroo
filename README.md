@@ -2,8 +2,6 @@
 
 <h1>Droneroo</h2>
 
-![Droneroo](Droneroo.png)
-
 </div>
 
 A MacOS/iOS drone app for music practice.
