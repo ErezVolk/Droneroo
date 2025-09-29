@@ -4,6 +4,22 @@
     {
       "layers" : [
         {
+          "image-name" : "4.3 – layer 2.svg",
+          "name" : "4.3 – layer 2"
+        }
+      ],
+      "shadow" : {
+        "kind" : "neutral",
+        "opacity" : 0.5
+      },
+      "translucency" : {
+        "enabled" : true,
+        "value" : 0.5
+      }
+    },
+    {
+      "layers" : [
+        {
           "image-name" : "3.2 – layer 2.svg",
           "name" : "3.2 – layer 2"
         },
