@@ -1,6 +1,6 @@
 {
   "fill" : {
-    "solid" : "display-p3:0.83342,0.44265,0.52680,1.00000"
+    "solid" : "display-p3:0.83529,0.44314,0.52549,1.00000"
   },
   "groups" : [
     {
@@ -8,19 +8,7 @@
         {
           "image-name" : "4.3 – layer.svg",
           "name" : "4.3 – layer"
-        }
-      ],
-      "shadow" : {
-        "kind" : "neutral",
-        "opacity" : 0.5
-      },
-      "translucency" : {
-        "enabled" : true,
-        "value" : 0.5
-      }
-    },
-    {
-      "layers" : [
+        },
         {
           "image-name" : "3.2 – layer.svg",
           "name" : "3.2 – layer"
