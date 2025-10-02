@@ -19,6 +19,8 @@ struct DronerooView: View {
     @AppStorage("index") var index = 0
     @AppStorage("bpm") var bpm = 60.00
     @AppStorage("linked") var isLinked = true
+    
+    @Namespace var namespace
 
     // Since calling `logic` from `.onKeyPress`/`.onTap` issues errors, save them aside
     @State private var pendingDroneChange = 0
@@ -43,7 +45,7 @@ struct DronerooView: View {
             backgroundGradient
             identityOverlay
 
-            VStack(spacing: 20) {
+            containerize(VStack(spacing: 10) {
                 
                 VStack(spacing: 10) { // Smaller spacing between drone and metronome controls
                     HStack {
@@ -51,9 +53,6 @@ struct DronerooView: View {
                             .onTapGesture { pendingDroneChange -= 1 }
                         
                         middleButton
-                            .handleKey(.leftArrow) { pendingDroneChange -= direction }
-                            .handleKey(.rightArrow) { pendingDroneChange += direction }
-                            .handleKey(.space) { isDroning.toggle() }
                             .onTapGesture { isDroning.toggle() }
                             .addToTour(tour, "middle", "Current note.\nTap to start/stop drone.")
                         
@@ -62,7 +61,7 @@ struct DronerooView: View {
                             .addToTour(tour, "right", "Next note.\nTap to change to this note.")
                     }
                     
-                    linkedButton
+                    linkedButton()
                     
                     BpmControlView(bpm: $bpm, isOn: $isTicking)
                 }
@@ -77,7 +76,7 @@ struct DronerooView: View {
                 
                 instrumentPanel
                     .colorMultiply(.drGrey8)
-            }
+            })
             .padding()
             .onAppear { reapplySavedState() }
             .onChange(of: selectedSeries) { loadSeries() }
@@ -96,6 +95,18 @@ struct DronerooView: View {
                 if pendingDroneChange != 0 { updatePosition(logic.changeDrone(pendingDroneChange)) }
                 pendingDroneChange = 0
             }
+        }
+        .focusable()
+        .handleKey(.leftArrow) { pendingDroneChange -= direction }
+        .handleKey(.rightArrow) { pendingDroneChange += direction }
+        .handleKey(.space) { isDroning.toggle() }
+    }
+    
+    private func containerize(_ view: some View) -> some View {
+        if #available(macOS 26.0, *) {
+            return GlassEffectContainer { view }
+        } else {
+            return view
         }
     }
 
@@ -132,25 +143,46 @@ struct DronerooView: View {
     }
     
     /// The "drone and metronome link" button
-    var linkedButton: some View {
-        Button("Linked", systemImage: isLinked ? "lock" : "lock.open") { isLinked.toggle() }
-            .imageScale(.large)
-            .plainButton()
+    func linkedButton() ->  some View {
+        if #available(macOS 26.0, *) {
+            return Image(systemName: isLinked ? "lock" : "lock.open")
+                .onTapGesture { isLinked.toggle() }
+                .imageScale(.large)
+                .padding(1)
+                .glassEffect(isLinked ? .regular : .clear)
+                .glassEffectUnion(id: "1", namespace: namespace)
+        } else {
+            return Button("Linked", systemImage: isLinked ? "lock" : "lock.open") { isLinked.toggle() }
+                .imageScale(.large)
+                .plainButton()
+        }
     }
 
     /// The "current tone" circle and keyboard event receiver
     var middleButton: some View {
-        Toggle(currentNote, isOn: $isDroning)
-            .focusable()
-            .focused($haveKeyboardFocus)
-            .onAppear { haveKeyboardFocus = true }
-            .toggleStyle(EncircledToggleStyle(
-                bold: pivotNote == currentNote,
-                onTextColor: .drGreen4,
-                onBackColor: .drGrey8,
-                offTextColor: .drGreen3,
-                offBackColor: .drGrey7
-            ))
+        makeMiddleButton()
+    }
+    
+    func makeMiddleButton() -> some View {
+        if #available(macOS 26.0, *) {
+            return Text(currentNote)
+                .font(.largeTitle.pointSize(32).bold(pivotNote == currentNote))
+                .frame(width: 128, height: 128)
+                .glassEffect(.regular, in: Circle())
+                .glassEffectUnion(id: "1", namespace: namespace)
+        } else {
+            return Toggle(currentNote, isOn: $isDroning)
+                .focusable()
+                .focused($haveKeyboardFocus)
+                .onAppear { haveKeyboardFocus = true }
+                .toggleStyle(EncircledToggleStyle(
+                    bold: pivotNote == currentNote,
+                    onTextColor: .drGreen4,
+                    onBackColor: .drGrey8,
+                    offTextColor: .drGreen3,
+                    offBackColor: .drGrey7
+                ))
+        }
     }
 
     var leftButton: some View {
@@ -163,13 +195,23 @@ struct DronerooView: View {
 
     /// The "previous/next tone" circles
     func prevNextButton(text: String, pending: Bool) -> some View {
-        return Text(text)
-            .encircle(
-                diameter: 80,
-                shadowRadius: pending ? 6 : 3,
-                textColor: pending ? .drGreen2 : .drGreen1,
-                circleColor: pending ? .drGrey7 : .drGrey6,
-                bold: pivotNote == text)
+        if #available(macOS 26.0, *) {
+            return Text(text)
+                .font(.largeTitle.pointSize(20).bold(pivotNote == text))
+                .frame(width: 80, height: 80)
+                .glassEffect(
+                    pending ? .regular : .clear,
+                    in: Circle()
+                )
+        } else {
+            return Text(text)
+                .encircle(
+                    diameter: 80,
+                    shadowRadius: pending ? 6 : 3,
+                    textColor: pending ? .drGreen2 : .drGreen1,
+                    circleColor: pending ? .drGrey7 : .drGrey6,
+                    bold: pivotNote == text)
+        }
     }
 
     /// The series type (circle of fourths, etc.) picker
