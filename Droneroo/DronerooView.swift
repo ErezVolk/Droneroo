@@ -101,7 +101,7 @@ struct DronerooView: View {
     }
     
     private func containerize(_ view: some View) -> some View {
-        if #available(macOS 26.0, *) {
+        if #available(macOS 26.0, iOS 26.0, *) {
             return GlassEffectContainer { view }
         } else {
             return view
@@ -155,7 +155,7 @@ struct DronerooView: View {
 
     /// The "current tone" circle and keyboard event receiver
     func middleButton() -> some View {
-        if #available(macOS 26.0, *) {
+        if #available(macOS 26.0, iOS 26.0, *) {
             return Text(currentNote)
                 .font(.largeTitle.pointSize(32).bold(pivotNote == currentNote))
                 .frame(width: 128, height: 128)
@@ -185,7 +185,7 @@ struct DronerooView: View {
 
     /// The "previous/next tone" circles
     func prevNextButton(text: String, pending: Bool) -> some View {
-        if #available(macOS 26.0, *) {
+        if #available(macOS 26.0, iOS 26.0, *) {
             return Text(text)
                 .font(.largeTitle.pointSize(20).bold(pivotNote == text))
                 .frame(width: 80, height: 80)

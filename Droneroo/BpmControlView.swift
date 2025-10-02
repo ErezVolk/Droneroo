@@ -49,16 +49,27 @@ struct BpmControlView: View {
             }
             
             ZStack {
-                Toggle("♩=\(Int(bpm))", isOn: $isOn)
-                    .toggleStyle(EncircledToggleStyle(
-                        diameter: diameter,
-                        bold: isOn,
-                        onTextColor: .drGreen4,
-                        onBackColor: .drGrey8,
-                        offTextColor: .drGreen3,
-                        offBackColor: .drGrey7
-                    ))
+                if #available(macOS 26.0, iOS 26.0, *) {
+                    ZStack {
+                        Circle()
+                            .frame(width: CGFloat(diameter), height: CGFloat(diameter))
+                            .foregroundStyle(isOn ? .drGrey8 : .drGrey7)
+                        Text("♩=\(Int(bpm))")
+                            .font(.largeTitle.pointSize(CGFloat(diameter) / 4).bold(isOn))
+                    }
                     .onTapGesture { isOn.toggle() }
+                } else {
+                    Toggle("♩=\(Int(bpm))", isOn: $isOn)
+                        .toggleStyle(EncircledToggleStyle(
+                            diameter: diameter,
+                            bold: isOn,
+                            onTextColor: .drGreen4,
+                            onBackColor: .drGrey8,
+                            offTextColor: .drGreen3,
+                            offBackColor: .drGrey7
+                        ))
+                        .onTapGesture { isOn.toggle() }
+                }
                 
                 Circle()
                     .trim(from: 0.0, to: (bpm - minBpm) / (maxBpm - minBpm))
