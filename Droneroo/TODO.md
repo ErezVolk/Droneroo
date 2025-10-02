@@ -2,6 +2,8 @@
 
 - Redo UI with some sort of carousel view for tone
   - https://blog.stackademic.com/swiftui-infinite-scrolling-slideshow-image-carousel-739244177bef?gi=5d53ddfa40a3
+  - https://github.com/GonzaloFuentes28/LiquidGlassCheatsheet
+  - https://livsycode.com/swiftui/implementing-the-glasseffect-in-swiftui/
 - Kotlin multiplatform? Flutter?
   - https://blog.kotlin-academy.com/building-your-first-kotlin-multiplatform-app-from-setup-to-ios-app-store-with-compose-e4d3f4c6767c?gi=d18273130976
 - Tempo bookmarks
