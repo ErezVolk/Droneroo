@@ -19,8 +19,6 @@ struct DronerooView: View {
     @AppStorage("index") var index = 0
     @AppStorage("bpm") var bpm = 60.00
     @AppStorage("linked") var isLinked = true
-    
-    @Namespace var namespace
 
     // Since calling `logic` from `.onKeyPress`/`.onTap` issues errors, save them aside
     @State private var pendingDroneChange = 0
@@ -52,7 +50,7 @@ struct DronerooView: View {
                         leftButton
                             .onTapGesture { pendingDroneChange -= 1 }
                         
-                        middleButton
+                        middleButton()
                             .onTapGesture { isDroning.toggle() }
                             .addToTour(tour, "middle", "Current note.\nTap to start/stop drone.")
                         
@@ -148,9 +146,6 @@ struct DronerooView: View {
             return Image(systemName: isLinked ? "lock" : "lock.open")
                 .onTapGesture { isLinked.toggle() }
                 .imageScale(.large)
-                .padding(1)
-                .glassEffect(isLinked ? .regular : .clear)
-                .glassEffectUnion(id: "1", namespace: namespace)
         } else {
             return Button("Linked", systemImage: isLinked ? "lock" : "lock.open") { isLinked.toggle() }
                 .imageScale(.large)
@@ -159,17 +154,12 @@ struct DronerooView: View {
     }
 
     /// The "current tone" circle and keyboard event receiver
-    var middleButton: some View {
-        makeMiddleButton()
-    }
-    
-    func makeMiddleButton() -> some View {
+    func middleButton() -> some View {
         if #available(macOS 26.0, *) {
             return Text(currentNote)
                 .font(.largeTitle.pointSize(32).bold(pivotNote == currentNote))
                 .frame(width: 128, height: 128)
                 .glassEffect(.regular, in: Circle())
-                .glassEffectUnion(id: "1", namespace: namespace)
         } else {
             return Toggle(currentNote, isOn: $isDroning)
                 .focusable()
